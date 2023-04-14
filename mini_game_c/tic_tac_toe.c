@@ -92,12 +92,14 @@ static Scene sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
 typedef struct _Game_SceneData {
     int isDraw;
     int isEnd;
+    int toggleTileHint;
     int turnCount;
     BoardTile currentPlayer;
     PlayerType players[2];
     BoardTile board[9];
 } Game_SceneData;
 Game_SceneData gameData = {
+    FALSE,
     FALSE,
     FALSE,
     0,
@@ -281,10 +283,13 @@ void ShowTurnsPlayer(short x, short y) {
     printf("P's Turn\n\n");
 }
 
-char GetTileByPlayer(BoardTile tile) {
-    switch (tile) {
+static const char* tileHintNumberByTileIndex = "1234566789";
+static const char* tileHintKeyByTileIndex = "qweasdzxc";
+
+char GetTileByPlayer(int tileIndex) {
+    switch (gameData.board[tileIndex]) {
     case TILE_PLAYER_EMPTY:
-        return '_';
+        return gameData.toggleTileHint ? tileHintKeyByTileIndex[tileIndex] : '_';
     case TILE_PLAYER_ONE:
         return 'O';
     case TILE_PLAYER_TWO:
@@ -297,24 +302,61 @@ char GetTileByPlayer(BoardTile tile) {
 
 }
 
+
+// void DrawGameBoard(short x, short y) {
+//     SetCursorPosition(x, y++);
+//     printf(" %c | %c | %c",
+//         GetTileByPlayer(gameData.board[0]), GetTileByPlayer(gameData.board[1]), GetTileByPlayer(gameData.board[2]));
+
+//     SetCursorPosition(x, y++);
+//     printf("---+---+---");
+
+//     SetCursorPosition(x, y++);
+//     printf(" %c | %c | %c",
+//         GetTileByPlayer(gameData.board[3]), GetTileByPlayer(gameData.board[4]), GetTileByPlayer(gameData.board[5]));
+
+//     SetCursorPosition(x, y++);
+//     printf("---+---+---");
+
+//     SetCursorPosition(x, y);
+//     printf(" %c | %c | %c",
+//         GetTileByPlayer(gameData.board[6]), GetTileByPlayer(gameData.board[7]), GetTileByPlayer(gameData.board[8]));
+// }
+
+static const char* boardLayout = "\
+0$c0|0$c0|0$c$n\
+---+---+---$n\
+0$c0|0$c0|0$c$n\
+---+---+---$n\
+0$c0|0$c0|0$c$n\
+";
+
 void DrawGameBoard(short x, short y) {
-    SetCursorPosition(x, y++);
-    printf(" %c | %c | %c",
-        GetTileByPlayer(gameData.board[0]), GetTileByPlayer(gameData.board[1]), GetTileByPlayer(gameData.board[2]));
-
-    SetCursorPosition(x, y++);
-    printf("---+---+---");
-
-    SetCursorPosition(x, y++);
-    printf(" %c | %c | %c",
-        GetTileByPlayer(gameData.board[3]), GetTileByPlayer(gameData.board[4]), GetTileByPlayer(gameData.board[5]));
-
-    SetCursorPosition(x, y++);
-    printf("---+---+---");
-
+    int index = 0;
+    int tileIndex = 0;
     SetCursorPosition(x, y);
-    printf(" %c | %c | %c",
-        GetTileByPlayer(gameData.board[6]), GetTileByPlayer(gameData.board[7]), GetTileByPlayer(gameData.board[8]));
+
+    while (boardLayout[index] != '\0') {
+        switch (boardLayout[index]) {
+        case '0':
+            printf(" ");
+            break;
+        case '$':
+            switch (boardLayout[++index]) {
+            case 'c':
+                printf("%c", GetTileByPlayer(tileIndex++));
+                break;
+            case 'n':
+                printf("\n");
+                break;
+            }
+            break;
+        default:
+            printf("%c", boardLayout[index]);
+            break;
+        }
+        ++index;
+    }
 }
 
 void DrawMessageBox(short x, short y) {
@@ -323,8 +365,6 @@ void DrawMessageBox(short x, short y) {
         printf("%s\n", GameData_MessageQueue[(GameData_MessageHead + i) % 3]);
     }
 }
-
-
 
 void Game_Initialize(PlayerType player2) {
     gameData.isEnd = FALSE;
@@ -404,6 +444,10 @@ void Game_ProcessInput() {
         inputKey = 9;
         break;
 
+    case 'h':
+    case 'H':
+        gameData.toggleTileHint = !gameData.toggleTileHint;
+        gameData.isDraw = FALSE;
     default:
         inputKey = -1;
         break;
