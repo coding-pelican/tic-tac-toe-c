@@ -284,6 +284,7 @@ void ShowTurnsPlayer(short x, short y) {
 }
 
 static const char* tileHintNumberByTileIndex = "1234566789";
+// TODO(DevDasae) : implement swappable tile hint feature
 static const char* tileHintKeyByTileIndex = "qweasdzxc";
 
 char GetTileByPlayer(int tileIndex) {
@@ -301,8 +302,6 @@ char GetTileByPlayer(int tileIndex) {
     return '!';
 
 }
-
-
 
 static const char* boardLayout = "\
 0$c0|0$c0|0$c$n\
@@ -347,6 +346,8 @@ void DrawMessageBox(short x, short y) {
     }
 }
 
+
+// TODO(DevDasae) : Implement Checking Game End Condition, Workable Game AI
 void Game_Initialize(PlayerType player2) {
     gameData.isEnd = FALSE;
     gameData.turnCount = 2;
