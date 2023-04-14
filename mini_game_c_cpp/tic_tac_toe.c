@@ -92,8 +92,9 @@ static Scene sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
 typedef struct _Game_SceneData {
     int isDraw;
     int isEnd;
-    int toggleTileHint;
     int turnCount;
+    int toggleTileHint;
+    int emptyTileCount;
     BoardTile currentPlayer;
     PlayerType players[2];
     BoardTile board[9];
@@ -103,6 +104,7 @@ Game_SceneData gameData = {
     FALSE,
     FALSE,
     0,
+    9,
     TILE_PLAYER_ONE,
     PLAYER_NONE, PLAYER_NONE,
     TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY
@@ -346,11 +348,37 @@ void DrawMessageBox(short x, short y) {
     }
 }
 
+static int winConditions[8][3] = {
+    { 0,1,2 },
+    { 3,4,5 },
+    { 6,7,8 },
+    { 0,3,6 },
+    { 1,4,7 },
+    { 2,5,8 },
+    { 0,4,8 },
+    { 2,4,6 }
+};
+
+int CheckWinCondition(const int* winConditions, BoardTile player) {
+    return (gameData.board[winConditions[0]] == player
+        && gameData.board[winConditions[1]] == player
+        && gameData.board[winConditions[2]] == player);
+}
+
+int CheckWin(BoardTile player, const int winConditions[8][3]) {
+    for (int i = 0; i < 8; ++i) {
+        if (CheckWinCondition(winConditions[i], player)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
 
 // TODO(DevDasae) : Implement Checking Game End Condition, Workable Game AI
 void Game_Initialize(PlayerType player2) {
     gameData.isEnd = FALSE;
     gameData.turnCount = 2;
+    gameData.emptyTileCount = 9;
     gameData.currentPlayer = TILE_PLAYER_ONE;
     gameData.players[0] = PLAYER_HUMAN;
     gameData.players[1] = player2;
@@ -367,6 +395,12 @@ void Game_ProcessInput() {
     inputKey = GetInputKey();
 
     switch (inputKey) {
+    case 13: // Enter
+    case 32: // Space
+        if (!gameData.isEnd) {
+            break;
+        }
+    case 27: // ESC
     case '0':
         currentScene = &sceneMenu;
         Game_Finalize();
@@ -437,7 +471,7 @@ void Game_ProcessInput() {
 }
 
 void Game_Update() {
-    if (inputKey == -1 || !gameData.isDraw) { return; }
+    if (inputKey == -1 || !gameData.isDraw || gameData.isEnd) { return; }
 
     gameData.isDraw = FALSE;
 
@@ -445,11 +479,24 @@ void Game_Update() {
         EnqueueMessage(MESSAGE_TILE_IS_NOT_EMPTY);
         return;
     }
+
     gameData.board[inputKey - 1] = gameData.currentPlayer;
-    gameData.currentPlayer = gameData.currentPlayer == TILE_PLAYER_ONE ? TILE_PLAYER_TWO : TILE_PLAYER_ONE;
-    ++gameData.turnCount;
+    --gameData.emptyTileCount;
+
     ClearMessageQueue();
-    EnqueueMessage(MESSAGE_SELECT_TILE);
+    if (CheckWin(gameData.currentPlayer, winConditions)) {
+        gameData.isDraw = FALSE;
+        gameData.isEnd = TRUE;
+        EnqueueMessage("You Won!");
+    } else if (gameData.emptyTileCount < 1) {
+        gameData.isDraw = FALSE;
+        gameData.isEnd = TRUE;
+        EnqueueMessage("It's a Draw!");
+    } else {
+        gameData.currentPlayer = gameData.currentPlayer == TILE_PLAYER_ONE ? TILE_PLAYER_TWO : TILE_PLAYER_ONE;
+        ++gameData.turnCount;
+        EnqueueMessage(MESSAGE_SELECT_TILE);
+    }
 }
 
 void Game_Draw() {
@@ -468,6 +515,7 @@ void Game_Finalize() {
     gameData.isDraw = FALSE;
     gameData.isEnd = FALSE;
     gameData.turnCount = 0;
+    gameData.emptyTileCount = 9;
     gameData.currentPlayer = TILE_PLAYER_ONE;
     gameData.players[0] = PLAYER_NONE;
     gameData.players[1] = PLAYER_NONE;
