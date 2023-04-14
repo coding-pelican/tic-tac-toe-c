@@ -280,7 +280,7 @@ void ShowTurnsPlayer(short x, short y) {
         printf("Error");
         return;
     }
-    printf("P's Turn\n\n");
+    printf("P's Turn");
 }
 
 static const char* tileHintNumberByTileIndex = "1234566789";
@@ -303,25 +303,6 @@ char GetTileByPlayer(int tileIndex) {
 }
 
 
-// void DrawGameBoard(short x, short y) {
-//     SetCursorPosition(x, y++);
-//     printf(" %c | %c | %c",
-//         GetTileByPlayer(gameData.board[0]), GetTileByPlayer(gameData.board[1]), GetTileByPlayer(gameData.board[2]));
-
-//     SetCursorPosition(x, y++);
-//     printf("---+---+---");
-
-//     SetCursorPosition(x, y++);
-//     printf(" %c | %c | %c",
-//         GetTileByPlayer(gameData.board[3]), GetTileByPlayer(gameData.board[4]), GetTileByPlayer(gameData.board[5]));
-
-//     SetCursorPosition(x, y++);
-//     printf("---+---+---");
-
-//     SetCursorPosition(x, y);
-//     printf(" %c | %c | %c",
-//         GetTileByPlayer(gameData.board[6]), GetTileByPlayer(gameData.board[7]), GetTileByPlayer(gameData.board[8]));
-// }
 
 static const char* boardLayout = "\
 0$c0|0$c0|0$c$n\
@@ -368,7 +349,7 @@ void DrawMessageBox(short x, short y) {
 
 void Game_Initialize(PlayerType player2) {
     gameData.isEnd = FALSE;
-    gameData.turnCount = 0;
+    gameData.turnCount = 2;
     gameData.currentPlayer = TILE_PLAYER_ONE;
     gameData.players[0] = PLAYER_HUMAN;
     gameData.players[1] = player2;
@@ -465,6 +446,7 @@ void Game_Update() {
     }
     gameData.board[inputKey - 1] = gameData.currentPlayer;
     gameData.currentPlayer = gameData.currentPlayer == TILE_PLAYER_ONE ? TILE_PLAYER_TWO : TILE_PLAYER_ONE;
+    ++gameData.turnCount;
     ClearMessageQueue();
     EnqueueMessage(MESSAGE_SELECT_TILE);
 }
@@ -473,10 +455,10 @@ void Game_Draw() {
     if (gameData.isDraw) { return; }
 
     DoSystemCls();
-
     ShowTurnsPlayer(0, 0);
-    DrawGameBoard(0, 2);
-    DrawMessageBox(0, 8);
+    printf(" : Turn %d", gameData.turnCount / 2);
+    DrawGameBoard(0, 3);
+    DrawMessageBox(0, 9);
 
     gameData.isDraw = TRUE;
 }
