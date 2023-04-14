@@ -6,6 +6,9 @@
 
 #define SWAP(A, B, TYPE) do { TYPE t = (A); (A) = (B); (B) = t; } while (0)
 
+#define TRUE (1)
+#define FALSE (0)
+
 static inline void assert(int condition, const char* message) {
     if (!condition) {
         fprintf(stderr, "%s(%s: %d)\n", message, __FILE__, __LINE__);
@@ -36,15 +39,18 @@ static inline void DoSystemCls() {
     printf("\x1B[2J\x1B[H");
 }
 
-#define TRUE (1)
-#define FALSE (0)
+
 
 int GetInputKey();
 
 const int IsRunning();
+
 void SetRunning(int toggle);
 
+
+
 typedef enum eSceneType {
+    SCENE_NONE = 0,
     SCENE_MENU,
     SCENE_GAME,
     SCENE_EXIT
@@ -54,6 +60,18 @@ typedef enum eMenuStateType {
     MENU_MAIN = 0x1000,
     MENU_SELECTION = 0x2000,
 } MenuStateType;
+
+typedef enum ePlayerType {
+    PLAYER_NONE = 0,
+    PLAYER_AI,
+    PLAYER_HUMAN
+} PlayerType;
+
+typedef enum eBoardTile {
+    TILE_PLAYER_EMPTY,
+    TILE_PLAYER_ONE,
+    TILE_PLAYER_TWO
+} BoardTile;
 
 typedef struct _Scene {
     void(*ProcessInput)();
@@ -72,12 +90,26 @@ void Menu_Draw();
 static Scene sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
 
 typedef struct _Game_SceneData {
+    int isDraw;
+    int isEnd;
     int turnCount;
+    BoardTile currentPlayer;
+    PlayerType players[2];
+    BoardTile board[9];
 } Game_SceneData;
-Game_SceneData gameData = { 0, };
+Game_SceneData gameData = {
+    FALSE,
+    FALSE,
+    0,
+    TILE_PLAYER_ONE,
+    PLAYER_NONE, PLAYER_NONE,
+    TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY
+};
+void Game_Initialize(PlayerType player2);
 void Game_ProcessInput();
 void Game_Update();
 void Game_Draw();
+void Game_Finalize();
 static Scene sceneGame = { Game_ProcessInput, Game_Update, Game_Draw };
 
 typedef struct _Exit_SceneData {
@@ -119,20 +151,13 @@ void SetRunning(int toggle) {
 
 void Menu_ProcessInput() {
     inputKey = GetInputKey();
-    int inputKeyState = inputKey | menuData.currentState;
 
-    switch (inputKeyState) {
-    case ('1' | MENU_MAIN):
+    switch (inputKey) {
+    case ('1'):
         inputKey = 1;
         break;
-    case ('2' | MENU_MAIN):
+    case ('2'):
         inputKey = 2;
-        break;
-    case ('1' | MENU_SELECTION):
-        inputKey = 3;
-        break;
-    case ('2' | MENU_SELECTION):
-        inputKey = 4;
         break;
     default:
         break;
@@ -140,28 +165,41 @@ void Menu_ProcessInput() {
 }
 
 void Menu_Update() {
-    switch (inputKey) {
-    case 1:
-        menuData.isDraw = FALSE;
-        menuData.currentState = MENU_SELECTION;
-        return;
-    case 2:
-        menuData.isDraw = FALSE;
-        currentScene = &sceneExit;
-        return;
-    case 3:
-    case 4:
-        menuData.isDraw = FALSE;
-        currentScene = &sceneGame;
-        return;
-    default:
+    switch (menuData.currentState) {
+    case MENU_MAIN:
+        switch (inputKey) {
+        case 1:
+            menuData.isDraw = FALSE;
+            menuData.currentState = MENU_SELECTION;
+            break;
+        case 2:
+            menuData.isDraw = FALSE;
+            currentScene = &sceneExit;
+            break;
+        default:
+            break;
+        }
         break;
-    }
-
-    if (menuData.currentState == MENU_SELECTION && !(inputKey == -1)) {
+    case MENU_SELECTION:
+        switch (inputKey) {
+        case -1:
+            return;
+        case 1:
+            Game_Initialize(PLAYER_HUMAN);
+            currentScene = &sceneGame;
+            break;
+        case 2:
+            Game_Initialize(PLAYER_AI);
+            currentScene = &sceneGame;
+            break;
+        default:
+            break;
+        }
         menuData.isDraw = FALSE;
         menuData.currentState = MENU_MAIN;
-        return;
+        break;
+    default:
+        break;
     }
 }
 
@@ -194,16 +232,224 @@ void Menu_Draw() {
 
 
 
+static const char* MESSAGE_EMPTY = NULL;
+static const char* MESSAGE_SELECT_TILE = "Select tile.";
+static const char* MESSAGE_TILE_IS_NOT_EMPTY = "This tile cannot be selected.";
+static const char* GameData_MessageQueue[3] = { NULL, NULL, NULL };
+static size_t GameData_MessageHead = 0;
+static size_t GameData_MessageTail = 0;
+static size_t GameData_MessageCount = 0;
+
+void ClearMessageQueue() {
+    GameData_MessageCount = 0;
+    GameData_MessageHead = 0;
+    GameData_MessageTail = 0;
+
+    for (int i = 0; i < 3; ++i) {
+        GameData_MessageQueue[i] = MESSAGE_EMPTY;
+    }
+}
+
+void DequeueMessage() {
+    --GameData_MessageCount;
+    GameData_MessageQueue[GameData_MessageHead] = MESSAGE_EMPTY;
+    GameData_MessageHead = (GameData_MessageHead + 1) % 3;
+}
+
+void EnqueueMessage(const char* pMessage) {
+    if (GameData_MessageCount >= 3) {
+        DequeueMessage();
+    }
+    ++GameData_MessageCount;
+    GameData_MessageQueue[GameData_MessageTail] = pMessage;
+    GameData_MessageTail = (GameData_MessageTail + 1) % 3;
+}
+
+void ShowTurnsPlayer(short x, short y) {
+    SetCursorPosition(x, y);
+    switch (gameData.currentPlayer) {
+    case 1:
+        printf("1");
+        break;
+    case 2:
+        printf("2");
+        break;
+    default:
+        printf("Error");
+        return;
+    }
+    printf("P's Turn\n\n");
+}
+
+char GetTileByPlayer(BoardTile tile) {
+    switch (tile) {
+    case TILE_PLAYER_EMPTY:
+        return '_';
+    case TILE_PLAYER_ONE:
+        return 'O';
+    case TILE_PLAYER_TWO:
+        return 'X';
+    default:
+        printf("Error");
+        break;
+    }
+    return '!';
+
+}
+
+void DrawGameBoard(short x, short y) {
+    SetCursorPosition(x, y++);
+    printf(" %c | %c | %c",
+        GetTileByPlayer(gameData.board[0]), GetTileByPlayer(gameData.board[1]), GetTileByPlayer(gameData.board[2]));
+
+    SetCursorPosition(x, y++);
+    printf("---+---+---");
+
+    SetCursorPosition(x, y++);
+    printf(" %c | %c | %c",
+        GetTileByPlayer(gameData.board[3]), GetTileByPlayer(gameData.board[4]), GetTileByPlayer(gameData.board[5]));
+
+    SetCursorPosition(x, y++);
+    printf("---+---+---");
+
+    SetCursorPosition(x, y);
+    printf(" %c | %c | %c",
+        GetTileByPlayer(gameData.board[6]), GetTileByPlayer(gameData.board[7]), GetTileByPlayer(gameData.board[8]));
+}
+
+void DrawMessageBox(short x, short y) {
+    SetCursorPosition(x, y);
+    for (int i = 0; i < GameData_MessageCount; ++i) {
+        printf("%s\n", GameData_MessageQueue[(GameData_MessageHead + i) % 3]);
+    }
+}
+
+
+
+void Game_Initialize(PlayerType player2) {
+    gameData.isEnd = FALSE;
+    gameData.turnCount = 0;
+    gameData.currentPlayer = TILE_PLAYER_ONE;
+    gameData.players[0] = PLAYER_HUMAN;
+    gameData.players[1] = player2;
+
+    for (int i = 0; i < 9; ++i) {
+        gameData.board[i] = TILE_PLAYER_EMPTY;
+    }
+
+    ClearMessageQueue();
+    EnqueueMessage(MESSAGE_SELECT_TILE);
+}
+
 void Game_ProcessInput() {
     inputKey = GetInputKey();
+
+    switch (inputKey) {
+    case '0':
+        currentScene = &sceneMenu;
+        Game_Finalize();
+        break;
+
+    case '1':
+    case 'q':
+    case 'Q':
+        inputKey = 1;
+        break;
+
+    case '2':
+    case 'w':
+    case 'W':
+        inputKey = 2;
+        break;
+
+    case '3':
+    case 'e':
+    case 'E':
+        inputKey = 3;
+        break;
+
+    case '4':
+    case 'a':
+    case 'A':
+        inputKey = 4;
+        break;
+
+    case '5':
+    case 's':
+    case 'S':
+        inputKey = 5;
+        break;
+
+    case '6':
+    case 'd':
+    case 'D':
+        inputKey = 6;
+        break;
+
+    case '7':
+    case 'z':
+    case 'Z':
+        inputKey = 7;
+        break;
+
+    case '8':
+    case 'x':
+    case 'X':
+        inputKey = 8;
+        break;
+
+    case '9':
+    case 'c':
+    case 'C':
+        inputKey = 9;
+        break;
+
+    default:
+        inputKey = -1;
+        break;
+    }
 }
 
 void Game_Update() {
+    if (inputKey == -1 || !gameData.isDraw) { return; }
 
+    gameData.isDraw = FALSE;
+
+    if (gameData.board[inputKey - 1] != TILE_PLAYER_EMPTY) {
+        EnqueueMessage(MESSAGE_TILE_IS_NOT_EMPTY);
+        return;
+    }
+    gameData.board[inputKey - 1] = gameData.currentPlayer;
+    gameData.currentPlayer = gameData.currentPlayer == TILE_PLAYER_ONE ? TILE_PLAYER_TWO : TILE_PLAYER_ONE;
+    ClearMessageQueue();
+    EnqueueMessage(MESSAGE_SELECT_TILE);
 }
 
 void Game_Draw() {
+    if (gameData.isDraw) { return; }
 
+    DoSystemCls();
+
+    ShowTurnsPlayer(0, 0);
+    DrawGameBoard(0, 2);
+    DrawMessageBox(0, 8);
+
+    gameData.isDraw = TRUE;
+}
+
+void Game_Finalize() {
+    gameData.isDraw = FALSE;
+    gameData.isEnd = FALSE;
+    gameData.turnCount = 0;
+    gameData.currentPlayer = TILE_PLAYER_ONE;
+    gameData.players[0] = PLAYER_NONE;
+    gameData.players[1] = PLAYER_NONE;
+
+    for (int i = 0; i < 9; ++i) {
+        gameData.board[i] = TILE_PLAYER_EMPTY;
+    }
+
+    ClearMessageQueue();
 }
 
 
