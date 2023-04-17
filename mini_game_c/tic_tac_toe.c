@@ -24,7 +24,8 @@
 enum {
     MESSAGE_COUNT_MAX = 4,
     MINIMAX_DEPTH = 8,
-    BOARD_SIZE = 9
+    BOARD_SIZE = 9,
+    INPUT_MAP_SIZE = 256
 };
 
 static inline void Assert(int condition, const char* message) {
@@ -143,6 +144,7 @@ Game_SceneData gameData = {
     false,
     false,
     NULL,
+    0,
     0,
     0,
     0
@@ -488,81 +490,88 @@ void Game_Initialize(PlayerType player2) {
     EnqueueMessage(MESSAGE_SELECT_TILE);
 }
 
+enum InputKey {
+    KEY_NONE = -1,
+    KEY_0 = '0',
+    KEY_1 = '1',
+    KEY_2 = '2',
+    KEY_3 = '3',
+    KEY_4 = '4',
+    KEY_5 = '5',
+    KEY_6 = '6',
+    KEY_7 = '7',
+    KEY_8 = '8',
+    KEY_9 = '9',
+    KEY_Q = 'q',
+    KEY_W = 'w',
+    KEY_E = 'e',
+    KEY_A = 'a',
+    KEY_S = 's',
+    KEY_D = 'd',
+    KEY_Z = 'z',
+    KEY_X = 'x',
+    KEY_C = 'c',
+    KEY_H = 'h',
+    KEY_ENTER = 13,
+    KEY_SPACE = 32,
+    KEY_ESC = 27,
+};
+
 void Game_ProcessInput() {
     inputKey = GetInputKey();
-
     switch (inputKey) {
-    case 13: // Enter
-    case 32: // Space
+    case KEY_ENTER:
+    case KEY_SPACE:
         if (!gameData.isOver) {
             break;
         }
-    case 27: // ESC
-    case '0':
+    case KEY_ESC:
+    case KEY_0:
         currentScene = &sceneMenu;
         Game_Finalize();
         break;
-
-    case '1':
-    case 'q':
-    case 'Q':
+    case KEY_1:
+    case KEY_Q:
         inputKey = 1;
         break;
-
-    case '2':
-    case 'w':
-    case 'W':
+    case KEY_2:
+    case KEY_W:
         inputKey = 2;
         break;
-
-    case '3':
-    case 'e':
-    case 'E':
+    case KEY_3:
+    case KEY_E:
         inputKey = 3;
         break;
-
-    case '4':
-    case 'a':
-    case 'A':
+    case KEY_4:
+    case KEY_A:
         inputKey = 4;
         break;
-
-    case '5':
-    case 's':
-    case 'S':
+    case KEY_5:
+    case KEY_S:
         inputKey = 5;
         break;
-
-    case '6':
-    case 'd':
-    case 'D':
+    case KEY_6:
+    case KEY_D:
         inputKey = 6;
         break;
-
-    case '7':
-    case 'z':
-    case 'Z':
+    case KEY_7:
+    case KEY_Z:
         inputKey = 7;
         break;
-
-    case '8':
-    case 'x':
-    case 'X':
+    case KEY_8:
+    case KEY_X:
         inputKey = 8;
         break;
-
-    case '9':
-    case 'c':
-    case 'C':
+    case KEY_9:
+    case KEY_C:
         inputKey = 9;
         break;
-
-    case 'h':
-    case 'H':
+    case KEY_H:
         gameData.toggleTileHint = !gameData.toggleTileHint;
         gameData.isDraw = false;
+        break;
     default:
-        inputKey = -1;
+        inputKey = KEY_NONE;
         break;
     }
 }
