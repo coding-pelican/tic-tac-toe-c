@@ -282,16 +282,20 @@ void ShowTurnsPlayer(short x, short y) {
     printf("P's Turn");
 }
 
-static const char tileHintNumberByTileIndex[] = "1234566789";
 // TODO(DevDasae) : implement swappable tile hint feature
-static const char tileHintKeyByTileIndex[] = "qweasdzxc";
+static const unsigned char tileHintNumberByTileIndex[] = "1234566789";
+static const unsigned char tileHintKeyByTileIndex[] = "qweasdzxc";
 
-char GetTileByPlayer(int tileIndex) {
+inline unsigned char GetTileHintByTile(int index) {
+    return tileHintKeyByTileIndex[index];
+}
+
+unsigned char GetTileByPlayer(int tileIndex) {
     switch (gameData.board[tileIndex]) {
     case TILE_PLAYER_TWO:
         return 'X';
     case TILE_PLAYER_EMPTY:
-        return gameData.toggleTileHint ? tileHintKeyByTileIndex[tileIndex] : '_';
+        return gameData.toggleTileHint ? GetTileHintByTile(tileIndex) : '_';
     case TILE_PLAYER_ONE:
         return 'O';
     default:
@@ -299,7 +303,6 @@ char GetTileByPlayer(int tileIndex) {
         break;
     }
     return '!';
-
 }
 
 static const char* boardLayout = "\
@@ -370,16 +373,16 @@ void DrawMessageBox(short x, short y) {
     }
 }
 
-static char sentenceHuman[] = "The previous player checked $.";
-static char sentenceAI[] = "The computer checked $.";
+static unsigned char sentenceHuman[] = "The previous player checked $.";
+static unsigned char sentenceAI[] = "The computer checked $.";
 
 const char* GetPlayerCheckedMessage(PlayerType type, int checkTile) {
     if (type == PLAYER_HUMAN) {
-        sentenceHuman[28] = checkTile < 10 ? tileHintKeyByTileIndex[checkTile] : '?';
-        return sentenceHuman;
+        sentenceHuman[28] = checkTile < 10 ? (char)GetTileHintByTile(checkTile) : '?';
+        return (const char*)sentenceHuman;
     } else {
-        sentenceAI[21] = checkTile < 10 ? tileHintKeyByTileIndex[checkTile] : '?';
-        return sentenceAI;
+        sentenceAI[21] = checkTile < 10 ? (char)GetTileHintByTile(checkTile) : '?';
+        return (const char*)sentenceAI;
     }
 }
 
