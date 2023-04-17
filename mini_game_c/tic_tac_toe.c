@@ -17,7 +17,9 @@
 #include <string.h>
 #include <time.h>
 
-#define SWAP(A, B, TYPE) do { TYPE t = (A); (A) = (B); (B) = t; } while (0)
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define swap(A, B, TYPE) do { TYPE t = (A); (A) = (B); (B) = t; } while (0)
 
 enum {
     MESSAGE_COUNT_MAX = 4,
@@ -47,7 +49,7 @@ static inline void SetCursorPosition(short x, short y) {
 
 static inline void DoSystemPause() {
     do {
-        printf("\rPress any key to continue . . .");
+        printf("\rPress enter key to continue . . .");
     } while (getchar() != '\n');
 }
 
@@ -113,12 +115,14 @@ typedef struct _Game_SceneData {
     BoardTile board[BOARD_SIZE];
     BoardTile currentPlayer;
     BoardTile currentOpponent;
+    int aiDifficulty;
     int turnCount;
     int emptyTileCount;
     int currentPlayerIndex;
     bool isDraw;
     bool isOver;
     bool toggleTileHint;
+    bool enqueuesAiMessage;
     // game message queue
     const char* messageQueue[MESSAGE_COUNT_MAX];
     size_t messageHead;
@@ -131,8 +135,10 @@ Game_SceneData gameData = {
     TILE_PLAYER_ONE,
     TILE_PLAYER_TWO,
     0,
+    0,
     BOARD_SIZE,
     0,
+    false,
     false,
     false,
     false,
@@ -412,66 +418,49 @@ int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
     return false;
 }
 
-// Player = TILE_PLAYER_O, Opponent = TILE_PLAYER_X
+inline bool IsBoardFull() {
+    return gameData.emptyTileCount < 1 ? true : false;
+}
 
-// Evaluate the current state of the board and return a score.
-// Returns 1 if X wins, -1 if O wins, 0 if the game is a tie, and INT_MIN if the game is not over.
 int Evaluate(BoardTile player, BoardTile opponent) {
-    // Check if either player has won the game.
     if (HasPlayerWonGame(player, winConditions)) {
         return 1;
     } else if (HasPlayerWonGame(opponent, winConditions)) {
         return -1;
-    }
-
-    // If the board is full and neither player has won, the game is a tie.
-    if (gameData.emptyTileCount < 1) {
+    } else if (IsBoardFull()) {
         return 0;
+    } else {
+        return -2; // game is not over yet
     }
-
-    // If the game is not over, return the worst possible score.
-    return INT_MIN;
 }
 
-// Returns the best score for the given player, assuming perfect play from both sides.
-int AlphaBeta(BoardTile player, BoardTile opponent, int alpha, int beta) {
-    // Check if the game is over or not.
-    int result = Evaluate(player, opponent);
-    if (result != INT_MIN) {
-        return result * player;
+int Minimax(BoardTile player, BoardTile opponent, int depth, bool maximizingPlayer) {
+    if (depth == 0 || IsBoardFull()) {
+        return Evaluate(opponent, player);
     }
-
-    // Initialize best score with the worst possible value.
-    int bestScore = INT_MIN;
-
-    // Loop through all possible moves on the board.
-    for (int index = 0; index < BOARD_SIZE; index++) {
-        if (gameData.board[index] != TILE_PLAYER_EMPTY) { continue; }
-        // If this move is available, play it and get the score for the next move.
-        gameData.board[index] = player;
-        int score = -AlphaBeta(opponent, player, -beta, -alpha);
-        gameData.board[index] = TILE_PLAYER_EMPTY;
-
-        // Update the best score and alpha value.
-        if (score > bestScore) {
-            bestScore = score;
+    int bestValue = 0;
+    if (maximizingPlayer) {
+        bestValue = INT_MIN;
+        for (int i = 0; i < BOARD_SIZE; ++i) {
+            if (gameData.board[i] == TILE_PLAYER_EMPTY) {
+                gameData.board[i] = player;
+                int value = Minimax(opponent, player, depth - 1, false);
+                gameData.board[i] = TILE_PLAYER_EMPTY;
+                bestValue = max(bestValue, value);
+            }
         }
-        if (score > alpha) {
-            alpha = score;
-        }
-
-        // If alpha >= beta, we can prune the rest of the moves.
-        if (alpha >= beta) {
-            return bestScore;
+    } else {
+        bestValue = INT_MAX;
+        for (int i = 0; i < BOARD_SIZE; ++i) {
+            if (gameData.board[i] == TILE_PLAYER_EMPTY) {
+                gameData.board[i] = opponent;
+                int value = Minimax(player, opponent, depth - 1, true);
+                gameData.board[i] = TILE_PLAYER_EMPTY;
+                bestValue = min(bestValue, value);
+            }
         }
     }
-
-    // If the game ends in a tie, return a score of 0.
-    if (bestScore == INT_MIN) {
-        return 0;
-    }
-
-    return bestScore;
+    return bestValue;
 }
 
 inline int GetPlayerIndex(BoardTile player) {
@@ -487,11 +476,13 @@ void Game_Initialize(PlayerType player2) {
     }
 
     gameData.currentPlayer = TILE_PLAYER_ONE;
+    gameData.currentOpponent = TILE_PLAYER_TWO;
     gameData.currentPlayerIndex = 0;
     gameData.turnCount = 2;
     gameData.emptyTileCount = BOARD_SIZE;
     gameData.isDraw = false;
     gameData.isOver = false;
+    gameData.enqueuesAiMessage = false;
     ClearMessageQueue();
 
     EnqueueMessage(MESSAGE_SELECT_TILE);
@@ -576,8 +567,9 @@ void Game_ProcessInput() {
     }
 }
 
+// TODO(DevDasae) : Add New Game Mode
 void Game_Update() {
-    // 입력이 없는가, 게임이 렌더링 되어있지 않은가,게임이 끝났는가
+    // 입력이 없는가, 게임이 렌더링 되어있지 않은가, 게임이 끝났는가
     gameData.currentPlayerIndex = GetPlayerIndex(gameData.currentPlayer);
     if ((gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN && inputKey == -1) || !gameData.isDraw || gameData.isOver) { return; };
 
@@ -592,42 +584,59 @@ void Game_Update() {
         gameData.board[inputKey - 1] = gameData.currentPlayer;
         ClearMessageQueue();
     } else { // 현재 플레이어가 AI라면
-        EnqueueMessage("The computer is thinking...");
-        int bestScore = INT_MIN;
-        int bestIndex = -1;
-
-        for (int index = 0; index < BOARD_SIZE; index++) {
-            if (gameData.board[index] != TILE_PLAYER_EMPTY) { continue; }
-
-            gameData.board[index] = gameData.currentPlayer;
-            int score = -AlphaBeta(gameData.currentPlayer, gameData.currentOpponent, INT_MIN, INT_MAX);
-            gameData.board[index] = TILE_PLAYER_EMPTY;
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestIndex = index;
-            }
+        if (!gameData.enqueuesAiMessage) {
+            gameData.enqueuesAiMessage = !gameData.enqueuesAiMessage;
+            EnqueueMessage("The computer is thinking...");
+            Delay(200);
+            return;
         }
-        gameData.board[bestIndex] = gameData.currentPlayer;
-        inputKey = bestIndex + 1;
-    }
-    --gameData.emptyTileCount;
-    EnqueueMessage(
-        GetPlayerCheckedMessage(gameData.players[gameData.currentPlayerIndex], inputKey - 1));
+        gameData.enqueuesAiMessage = !gameData.enqueuesAiMessage;
+        int aiMove = 0;
+        switch (gameData.aiDifficulty) {
+        case 1:
+            // Easy mode: select a random empty tile
+            do {
+                aiMove = rand() % BOARD_SIZE;
+            } while (gameData.board[aiMove] != TILE_PLAYER_EMPTY);
+            break;
 
-    int result = Evaluate(gameData.currentPlayer, gameData.currentOpponent);
-    if (result == 1 || result == -1) {
+        default:
+            // Hard mode: use the minimax algorithm
+            int bestValue = INT_MIN;
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                if (gameData.board[i] == TILE_PLAYER_EMPTY) {
+                    gameData.board[i] = gameData.currentPlayer;
+                    int currentValue = Minimax(gameData.currentPlayer, gameData.currentOpponent, gameData.aiDifficulty, true);
+                    gameData.board[i] = TILE_PLAYER_EMPTY;
+                    if (currentValue > bestValue) {
+                        bestValue = currentValue;
+                        aiMove = i;
+                    }
+                }
+            }
+            break;
+        }
+        gameData.board[aiMove] = gameData.currentPlayer;
+        inputKey = aiMove + 1;
+    }
+    EnqueueMessage(GetPlayerCheckedMessage(gameData.players[gameData.currentPlayerIndex], inputKey - 1));
+
+    gameData.emptyTileCount--;
+
+    int turnResult = Evaluate(gameData.currentPlayer, gameData.currentOpponent);
+    if (turnResult == 1 || turnResult == -1) {
         gameData.isDraw = false;
         gameData.isOver = true;
         EnqueueMessage("Congratulations! You won!\n");
-    } else if (result == 0) {
+        return;
+    } else if (turnResult == 0) {
         gameData.isDraw = false;
         gameData.isOver = true;
         EnqueueMessage("It's a draw.");
+        return;
     } else {
-        gameData.currentPlayer = gameData.currentPlayer == TILE_PLAYER_ONE ? TILE_PLAYER_TWO : TILE_PLAYER_ONE;
-        gameData.currentOpponent = gameData.currentOpponent == TILE_PLAYER_TWO ? TILE_PLAYER_ONE : TILE_PLAYER_TWO;
-        ++gameData.turnCount;
+        swap(gameData.currentPlayer, gameData.currentOpponent, BoardTile);
+        gameData.turnCount++;
         if (gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN) {
             EnqueueMessage(MESSAGE_SELECT_TILE);
         }
@@ -655,11 +664,13 @@ void Game_Finalize() {
     }
 
     gameData.currentPlayer = TILE_PLAYER_ONE;
+    gameData.currentOpponent = TILE_PLAYER_TWO;
     gameData.currentPlayerIndex = 0;
     gameData.turnCount = 0;
     gameData.emptyTileCount = BOARD_SIZE;
     gameData.isDraw = false;
     gameData.isOver = false;
+    gameData.enqueuesAiMessage = false;
     ClearMessageQueue();
 }
 
