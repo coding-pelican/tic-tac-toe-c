@@ -76,6 +76,8 @@ typedef enum eSceneType {
 typedef enum eMenuStateType {
     MENU_MAIN = 0x1000,
     MENU_SELECTION = 0x2000,
+    MENU_DIFFICULTY = 0x3000,
+    MENU_ORDER = 0x4000
 } MenuStateType;
 
 typedef enum ePlayerType {
@@ -135,7 +137,7 @@ Game_SceneData gameData = {
     TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,
     TILE_PLAYER_ONE,
     TILE_PLAYER_TWO,
-    0,
+    1,
     0,
     BOARD_SIZE,
     0,
@@ -149,7 +151,7 @@ Game_SceneData gameData = {
     0,
     0
 };
-void Game_Initialize(PlayerType player2);
+void Game_Initialize(PlayerType player1, PlayerType player2);
 void Game_ProcessInput();
 void Game_Update();
 void Game_Draw();
@@ -203,6 +205,9 @@ void Menu_ProcessInput() {
     case ('2'):
         inputKey = 2;
         break;
+    case ('3'):
+        inputKey = 3;
+        break;
     default:
         break;
     }
@@ -229,13 +234,16 @@ void Menu_Update() {
         case -1:
             return;
         case 1:
-            Game_Initialize(PLAYER_HUMAN);
+            Game_Initialize(PLAYER_HUMAN, PLAYER_HUMAN);
             currentScene = &sceneGame;
             break;
         case 2:
-            Game_Initialize(PLAYER_AI);
+            Game_Initialize(PLAYER_HUMAN, PLAYER_AI);
             currentScene = &sceneGame;
             break;
+        case 3:
+            Game_Initialize(PLAYER_AI, PLAYER_AI);
+            currentScene = &sceneGame;
         default:
             break;
         }
@@ -259,14 +267,31 @@ void Menu_Draw() {
         puts("1. 새 게임");
         puts("2. 종료");
         break;
+
     case MENU_SELECTION:
-        puts("게임 플레이 방식 선택\n");
+        puts("Select Game Play Mode\n");
 
         puts("- 1. Play with Another Player");
-        puts("- 2. Play with A.I.\n");
+        puts("- 2. Play with A.I.");
+        puts("- 3. Watch A.I. game play\n");
 
         puts("- or Go To Menu");
         break;
+
+    case MENU_ORDER:
+        puts("Select Order of Player\n");
+
+        puts("- 1. Player 1");
+        puts("- 2. Player 2\n");
+        break;
+
+    case MENU_DIFFICULTY:
+        puts("Select Game A.I. Difficult\n");
+
+        puts("- 1. Easy");
+        puts("- 2. Hard");
+        break;
+
     default:
         printf("Error\n");
         break;
@@ -469,8 +494,8 @@ inline int GetPlayerIndex(BoardTile player) {
     return player == TILE_PLAYER_ONE ? 0 : 1;
 }
 
-void Game_Initialize(PlayerType player2) {
-    gameData.players[0] = PLAYER_HUMAN;
+void Game_Initialize(PlayerType player1, PlayerType player2) {
+    gameData.players[0] = player1;
     gameData.players[1] = player2;
 
     for (int i = 0; i < BOARD_SIZE; ++i) {
