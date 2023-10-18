@@ -17,16 +17,16 @@
 #include <string.h>
 #include <time.h>
 
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#define swap(A, B, TYPE) do { TYPE t = (A); (A) = (B); (B) = t; } while (0)
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define swap(A, B, TYPE) \
+    do {                 \
+        TYPE t = (A);    \
+        (A) = (B);       \
+        (B) = t;         \
+    } while (0)
 
-enum {
-    MESSAGE_COUNT_MAX = 4,
-    MINIMAX_DEPTH = 8,
-    BOARD_SIZE = 9,
-    INPUT_MAP_SIZE = 256
-};
+enum { MESSAGE_COUNT_MAX = 4, MINIMAX_DEPTH = 8, BOARD_SIZE = 9, INPUT_MAP_SIZE = 256 };
 
 static inline void Assert(int condition, const char* message) {
     if (!condition) {
@@ -37,16 +37,14 @@ static inline void Assert(int condition, const char* message) {
 
 static inline void Delay(clock_t waitMS) {
     clock_t endMS = waitMS + clock();
-    while (endMS > clock());
+    while (endMS > clock()) {
+        ;
+    }
 }
 
-static void SetCursorVisible(int visible) {
-    printf(visible ? "\x1B[?25h" : "\x1B[?25l");
-}
+static void SetCursorVisible(int visible) { printf(visible ? "\x1B[?25h" : "\x1B[?25l"); }
 
-static inline void SetCursorPosition(short x, short y) {
-    printf("\x1B[%d;%dH", y, x);
-}
+static inline void SetCursorPosition(short x, short y) { printf("\x1B[%d;%dH", y, x); }
 
 static inline void DoSystemPause() {
     do {
@@ -54,9 +52,7 @@ static inline void DoSystemPause() {
     } while (getchar() != '\n');
 }
 
-static inline void DoSystemCls() {
-    printf("\x1B[2J\x1B[H");
-}
+static inline void DoSystemCls() { printf("\x1B[2J\x1B[H"); }
 
 
 
@@ -66,25 +62,11 @@ static inline void SetRunning(bool toggle);
 
 
 
-typedef enum eSceneType {
-    SCENE_NONE = 0,
-    SCENE_MENU,
-    SCENE_GAME,
-    SCENE_EXIT
-} SceneType;
+typedef enum eSceneType { SCENE_NONE = 0, SCENE_MENU, SCENE_GAME, SCENE_EXIT } SceneType;
 
-typedef enum eMenuStateType {
-    MENU_MAIN = 0x1000,
-    MENU_SELECTION = 0x2000,
-    MENU_DIFFICULTY = 0x3000,
-    MENU_ORDER = 0x4000
-} MenuStateType;
+typedef enum eMenuStateType { MENU_MAIN = 0x1000, MENU_SELECTION = 0x2000, MENU_DIFFICULTY = 0x3000, MENU_ORDER = 0x4000 } MenuStateType;
 
-typedef enum ePlayerType {
-    PLAYER_NONE = 0,
-    PLAYER_AI,
-    PLAYER_HUMAN
-} PlayerType;
+typedef enum ePlayerType { PLAYER_NONE = 0, PLAYER_AI, PLAYER_HUMAN } PlayerType;
 
 typedef enum eBoardTile {
     TILE_PLAYER_TWO = -1,
@@ -94,9 +76,9 @@ typedef enum eBoardTile {
 
 // TODO(DevDasae) : Implement State Machine
 typedef struct _Scene {
-    void(*ProcessInput)();
-    void(*Update)();
-    void(*Draw)();
+    void (*ProcessInput)();
+    void (*Update)();
+    void (*Draw)();
 } Scene;
 
 typedef struct _Menu_SceneData {
@@ -132,25 +114,32 @@ typedef struct _Game_SceneData {
     size_t messageTail;
     size_t messageCount;
 } Game_SceneData;
-Game_SceneData gameData = {
-    PLAYER_NONE, PLAYER_NONE,
-    TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,
-    TILE_PLAYER_ONE,
-    TILE_PLAYER_TWO,
-    1,
-    0,
-    BOARD_SIZE,
-    0,
-    false,
-    false,
-    false,
-    false,
-    NULL,
-    0,
-    0,
-    0,
-    0
-};
+Game_SceneData gameData = { PLAYER_NONE,
+                            PLAYER_NONE,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_EMPTY,
+                            TILE_PLAYER_ONE,
+                            TILE_PLAYER_TWO,
+                            1,
+                            0,
+                            BOARD_SIZE,
+                            0,
+                            false,
+                            false,
+                            false,
+                            false,
+                            NULL,
+                            0,
+                            0,
+                            0,
+                            0 };
 void Game_Initialize(PlayerType player1, PlayerType player2);
 void Game_ProcessInput();
 void Game_Update();
@@ -161,7 +150,9 @@ static Scene sceneGame = { Game_ProcessInput, Game_Update, Game_Draw };
 typedef struct _Exit_SceneData {
     bool isDraw;
 } Exit_SceneData;
-Exit_SceneData exitData = { false, };
+Exit_SceneData exitData = {
+    false,
+};
 void Exit_ProcessInput();
 void Exit_Update();
 void Exit_Draw();
@@ -185,13 +176,9 @@ int GetInputKey() {
     return -1;
 }
 
-inline const bool IsRunning() {
-    return isRunning;
-}
+inline const bool IsRunning() { return isRunning; }
 
-inline void SetRunning(bool toggle) {
-    isRunning = toggle;
-}
+inline void SetRunning(bool toggle) { isRunning = toggle; }
 
 
 
@@ -319,9 +306,7 @@ void ShowTurnsPlayer(short x, short y) {
 static const unsigned char tileHintNumberByTileIndex[] = "1234566789";
 static const unsigned char tileHintKeyByTileIndex[] = "qweasdzxc";
 
-inline unsigned char GetTileHintByTile(int index) {
-    return tileHintKeyByTileIndex[index];
-}
+static inline unsigned char GetTileHintByTile(int index) { return tileHintKeyByTileIndex[index]; }
 
 unsigned char GetTileByPlayer(int tileIndex) {
     switch (gameData.board[tileIndex]) {
@@ -419,21 +404,10 @@ const char* GetPlayerCheckedMessage(PlayerType type, int checkTile) {
     }
 }
 
-static const int winConditions[8][3] = {
-    { 0,1,2 },
-    { 3,4,5 },
-    { 6,7,8 },
-    { 0,3,6 },
-    { 1,4,7 },
-    { 2,5,8 },
-    { 0,4,8 },
-    { 2,4,6 }
-};
+static const int winConditions[8][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 }, { 0, 3, 6 }, { 1, 4, 7 }, { 2, 5, 8 }, { 0, 4, 8 }, { 2, 4, 6 } };
 
 int SatisfiesWinCondition(const int* winConditions, BoardTile player) {
-    return (gameData.board[winConditions[0]] == player
-        && gameData.board[winConditions[1]] == player
-        && gameData.board[winConditions[2]] == player);
+    return (gameData.board[winConditions[0]] == player && gameData.board[winConditions[1]] == player && gameData.board[winConditions[2]] == player);
 }
 
 int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
@@ -445,9 +419,7 @@ int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
     return false;
 }
 
-inline bool IsBoardFull() {
-    return gameData.emptyTileCount < 1 ? true : false;
-}
+static inline bool IsBoardFull() { return gameData.emptyTileCount < 1 ? true : false; }
 
 int Evaluate(BoardTile player, BoardTile opponent) {
     if (HasPlayerWonGame(player, winConditions)) {
@@ -490,9 +462,7 @@ int Minimax(BoardTile player, BoardTile opponent, int depth, bool maximizingPlay
     return bestValue;
 }
 
-inline int GetPlayerIndex(BoardTile player) {
-    return player == TILE_PLAYER_ONE ? 0 : 1;
-}
+static inline int GetPlayerIndex(BoardTile player) { return player == TILE_PLAYER_ONE ? 0 : 1; }
 
 void Game_Initialize(PlayerType player1, PlayerType player2) {
     gameData.players[0] = player1;
@@ -605,12 +575,14 @@ void Game_ProcessInput() {
 void Game_Update() {
     // 입력이 없는가, 게임이 렌더링 되어있지 않은가, 게임이 끝났는가
     gameData.currentPlayerIndex = GetPlayerIndex(gameData.currentPlayer);
-    if ((gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN && inputKey == -1) || !gameData.isDraw || gameData.isOver) { return; };
+    if ((gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN && inputKey == -1) || !gameData.isDraw || gameData.isOver) {
+        return;
+    };
 
     gameData.isDraw = false;
 
     if (gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN) { // 현재 플레이어가 인간이라면
-        if (gameData.board[inputKey - 1] != TILE_PLAYER_EMPTY) { // 플레이어의 입력 칸이 비어있지 않다면
+        if (gameData.board[inputKey - 1] != TILE_PLAYER_EMPTY) {         // 플레이어의 입력 칸이 비어있지 않다면
             EnqueueMessage(MESSAGE_TILE_IS_NOT_EMPTY);
             return;
         }
@@ -636,18 +608,20 @@ void Game_Update() {
 
         default:
             // Hard mode: use the minimax algorithm
-            int bestValue = INT_MIN;
-            for (int i = 0; i < BOARD_SIZE; i++) {
-                if (gameData.board[i] == TILE_PLAYER_EMPTY) {
-                    gameData.board[i] = gameData.currentPlayer;
-                    int currentValue = Minimax(gameData.currentPlayer, gameData.currentOpponent, gameData.aiDifficulty, true);
-                    gameData.board[i] = TILE_PLAYER_EMPTY;
-                    if (currentValue > bestValue) {
-                        bestValue = currentValue;
-                        aiMove = i;
+            do {
+                int bestValue = INT_MIN;
+                for (int i = 0; i < BOARD_SIZE; i++) {
+                    if (gameData.board[i] == TILE_PLAYER_EMPTY) {
+                        gameData.board[i] = gameData.currentPlayer;
+                        int currentValue = Minimax(gameData.currentPlayer, gameData.currentOpponent, gameData.aiDifficulty, true);
+                        gameData.board[i] = TILE_PLAYER_EMPTY;
+                        if (currentValue > bestValue) {
+                            bestValue = currentValue;
+                            aiMove = i;
+                        }
                     }
                 }
-            }
+            } while (0);
             break;
         }
         gameData.board[aiMove] = gameData.currentPlayer;
@@ -678,7 +652,9 @@ void Game_Update() {
 }
 
 void Game_Draw() {
-    if (gameData.isDraw) { return; }
+    if (gameData.isDraw) {
+        return;
+    }
 
     DoSystemCls();
     ShowTurnsPlayer(0, 0);
