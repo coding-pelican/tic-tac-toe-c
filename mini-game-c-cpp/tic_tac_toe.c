@@ -26,7 +26,10 @@
         (B) = t;         \
     } while (0)
 
-enum { MESSAGE_COUNT_MAX = 4, MINIMAX_DEPTH = 8, BOARD_SIZE = 9, INPUT_MAP_SIZE = 256 };
+enum { MESSAGE_COUNT_MAX = 4,
+       MINIMAX_DEPTH = 8,
+       BOARD_SIZE = 9,
+       INPUT_MAP_SIZE = 256 };
 
 static inline void Assert(int condition, const char* message) {
     if (!condition) {
@@ -62,11 +65,19 @@ static inline void SetRunning(bool toggle);
 
 
 
-typedef enum eSceneType { SCENE_NONE = 0, SCENE_MENU, SCENE_GAME, SCENE_EXIT } SceneType;
+typedef enum eSceneType { SCENE_NONE = 0,
+                          SCENE_MENU,
+                          SCENE_GAME,
+                          SCENE_EXIT } SceneType;
 
-typedef enum eMenuStateType { MENU_MAIN = 0x1000, MENU_SELECTION = 0x2000, MENU_DIFFICULTY = 0x3000, MENU_ORDER = 0x4000 } MenuStateType;
+typedef enum eMenuStateType { MENU_MAIN = 0x1000,
+                              MENU_SELECTION = 0x2000,
+                              MENU_DIFFICULTY = 0x3000,
+                              MENU_ORDER = 0x4000 } MenuStateType;
 
-typedef enum ePlayerType { PLAYER_NONE = 0, PLAYER_AI, PLAYER_HUMAN } PlayerType;
+typedef enum ePlayerType { PLAYER_NONE = 0,
+                           PLAYER_AI,
+                           PLAYER_HUMAN } PlayerType;
 
 typedef enum eBoardTile {
     TILE_PLAYER_TWO = -1,
