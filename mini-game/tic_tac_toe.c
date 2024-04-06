@@ -1,13 +1,79 @@
 /**
  * @file tic_tac_toe.c
  * @author Gyeongtae Kim(DevDasae, @coding-pelican) (codingpelican@gmail.com)
- * @brief Tic-tac-toe game implemented in C for study purpose and alpha-beta
- * pruning algorithm implementation test
+
+ * @brief Tic-tac-toe game implemented in C for study purpose
+    and alpha-beta pruning algorithm implementation test
+
  * @version 0.1
  * @date 2023-04-15
  *
  * @copyright Copyright (c) 2023
  *
+ * @section DESCRIPTION
+ *
+ * # Change Log:
+ * ============================================================================
+ * [2023-04-15] v0.1
+ * - Initial version created
+ * - Implemented basic game logic and user interface
+ *   - Drawing 3x3 tic-tac-toe board
+ *   - Displaying player turn
+ *   - Handling human player input
+ *   - Checking game end conditions (win or draw)
+ *   - Displaying game messages through message queue
+ * - Added support for different game modes
+ *   - Human vs Human
+ *   - Human vs AI (Easy/Hard mode using Minimax algorithm)
+ *   - AI vs AI
+ * - Implemented additional features
+ *   - Main menu to select game mode and start the game
+ *   - Exit scene to confirm game exit
+ *   - Hiding/showing cursor
+ *   - Clearing screen
+ *   - Waiting for user input
+ *   - Toggle for displaying tile hints on the game board
+ *   - Turn counter and display for current player's turn
+ *   - Simple delay function for simulating AI thinking time
+ *   - Basic error handling and assertions for debugging
+ *   - Inline functions for common operations to improve performance
+ *   - Documented the code using Doxygen-style comments
+ *
+ * [Known issues]
+ * - AI player sometimes makes suboptimal moves in Hard mode
+ * - Game may crash if user enters invalid input during gameplay
+ * - Memory leaks detected during prolonged gameplay sessions
+ * - Compatibility issues reported on certain platforms
+ * - Game state not properly reset when starting a new game after finishing one
+ *
+ * [Code refactoring and enhancements]
+ * - Improve code modularity and function separation for better readability
+ * - Remove magic numbers and use constants
+ * - Enhance comments and documentation
+ * - Maintain consistency in code style and formatting
+ * - Apply test-driven development (TDD) methodology
+ * - Optimize performance and improve code efficiency
+ *
+ * [Additional feature improvements]
+ * - Add AI difficulty selection option (Easy, Medium, Hard)
+ * - Save game results and display statistics
+ * - Add game board size selection option (3x3, 4x4, 5x5, etc.)
+ * - Input and display user names
+ * - Implement pause functionality during gameplay
+ * - Add option to display hints during gameplay
+ * - Add sound effects and background music
+ * - Improve the user interface with better formatting, colors, and animations
+ * - Implement a more flexible and dynamic game board rendering system
+ * - Improve the message queue system to handle a variable number of messages
+    and prevent overflow
+ * - Add support for advanced input handling, such as key repeat
+    and multi-key combinations
+ * - Implement a save/load system for resuming a game in progress
+ * - Add network multiplayer support for playing against other players online
+ * - Explore the possibility of porting the game to other platforms,
+    such as web or mobile
+ * - Continuously gather user feedback and incorporate it into future updates
+    and improvements
  */
 
 #include <conio.h>
