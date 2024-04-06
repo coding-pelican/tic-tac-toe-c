@@ -27,7 +27,12 @@
         (B) = t;         \
     } while (0)
 
-enum { MESSAGE_COUNT_MAX = 4, MINIMAX_DEPTH = 8, BOARD_SIZE = 9, INPUT_MAP_SIZE = 256 };
+enum {
+    MESSAGE_COUNT_MAX = 4,
+    MINIMAX_DEPTH = 8,
+    BOARD_SIZE = 9,
+    INPUT_MAP_SIZE = 256,
+};
 
 // static inline void Assert(int condition, const char* message) {
 //     if (!condition) {
@@ -76,7 +81,7 @@ typedef enum eBoardTile {
     TILE_PLAYER_ONE = 1,
 } BoardTile;
 
-// TODO(DevDasae) : Implement State Machine
+// TODO(DevDasae): Implement State Machine
 typedef struct _Scene {
     void (*ProcessInput)();
     void (*Update)();
@@ -720,8 +725,8 @@ void Exit_Draw() {
 }
 
 int main(int argc, char const* argv[]) {
-    (void)argc;
-    (void)argv;
+    (void)argc, (void)argv;
+
     SetCursorVisible(false);
     DoSystemCls();
 
