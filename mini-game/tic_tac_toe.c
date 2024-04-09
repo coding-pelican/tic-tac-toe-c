@@ -28,7 +28,7 @@
  * - Fixed known issues and bugs
  *   - Resolved AI player's suboptimal moves in certain scenarios
  *   - Fixed game crashes caused by invalid user input
- *   - Addressed memory leaks during prolonged gameplay sessions
+ *   - Addressed memory leaks during prolonged GamePlay sessions
  *   - Improved compatibility across different platforms
  * - Optimized code performance and efficiency
  *   - Reduced redundant calculations and function calls
@@ -58,7 +58,7 @@
  * - Provide localization support for multiple languages
  * - Optimize the codebase further for better performance
     on resource-constrained devices
- * - Conduct thorough playtesting and gather user feedback
+ * - Conduct thorough play testing and gather user feedback
     for continuous improvement
  *
  * [2023-04-15] v0.1 ----------------------------------------------------------
@@ -88,8 +88,8 @@
  *
  * [Known issues]
  * - AI player sometimes makes suboptimal moves in Hard mode
- * - Game may crash if user enters invalid input during gameplay
- * - Memory leaks detected during prolonged gameplay sessions
+ * - Game may crash if user enters invalid input during GamePlay
+ * - Memory leaks detected during prolonged GamePlay sessions
  * - Compatibility issues reported on certain platforms
  * - Game state not properly reset when starting a new game after finishing one
  *
@@ -106,8 +106,8 @@
  * - Save game results and display statistics
  * - Add game board size selection option (3x3, 4x4, 5x5, etc.)
  * - Input and display user names
- * - Implement pause functionality during gameplay
- * - Add option to display hints during gameplay
+ * - Implement pause functionality during GamePlay
+ * - Add option to display hints during GamePlay
  * - Add sound effects and background music
  * - Improve the user interface with better formatting, colors, and animations
  * - Implement a more flexible and dynamic game board rendering system
@@ -123,6 +123,8 @@
     and improvements
  */
 
+
+// #region Header_Inclusion
 #include <conio.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -130,15 +132,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+// #endregion // Header_Inclusion
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define swap(A, B, TYPE) \
+// #region Pre-process_Definitions
+#define max(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
+#define min(_a, _b) (((_a) < (_b)) ? (_a) : (_b))
+#define swap(_T, _a, _b) \
     do {                 \
-        TYPE __t = (A);  \
-        (A) = (B);       \
-        (B) = __t;       \
+        _T __t = (_a);   \
+        (_a) = (_b);     \
+        (_b) = __t;      \
     } while (0)
+// #endregion // Pre-process_Definitions
+
 
 enum {
     MESSAGE_COUNT_MAX = 4,
@@ -769,7 +775,7 @@ void Game_Update() {
         EnqueueMessage("It's a draw.");
         return;
     }
-    swap(gameData.currentPlayer, gameData.currentOpponent, BoardTile);
+    swap(BoardTile, gameData.currentPlayer, gameData.currentOpponent);
     gameData.turnCount++;
     if (isHumanTurn) {
         EnqueueMessage(MESSAGE_SELECT_TILE);
