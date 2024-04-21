@@ -1,6 +1,6 @@
 ﻿/**
  * @file tic_tac_toe.c
- * @author Gyeongtae Kim(DevDasae, @coding-pelican) (codingpelican@gmail.com)
+ * @author Gyeongtae Kim(DevDasae, @coding-pelican) <codingpelican@gmail.com>
  *
  * @brief Tic-tac-toe game implemented in C for study purpose
     and alpha-beta pruning algorithm implementation test
@@ -144,6 +144,7 @@
         (_b) = __t;      \
     } while (0)
 // #endregion // Pre-process_Definitions
+
 
 
 enum {
@@ -436,10 +437,9 @@ unsigned char GetTileByPlayer(int tileIndex) {
     case TILE_PLAYER_ONE:
         return 'O';
     default:
-        printf("Error");
-        break;
+        Assert(false, "Un-handled character in board layout");
+        return '!';
     }
-    return '!';
 }
 
 static const char* boardLayout = "\
@@ -525,8 +525,18 @@ const char* GetPlayerCheckedMessage(PlayerType type, int checkTile) { // NOLINT
     return (const char*)sentenceAI;
 }
 
-static const int winConditions[8][3] = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, {0, 3, 6},
-                                        {1, 4, 7}, {2, 5, 8}, {0, 4, 8}, {2, 4, 6}};
+// clang-format off
+static const int winConditions[8][3] = {
+    {0, 1, 2},
+    {3, 4, 5},
+    {6, 7, 8},
+    {0, 3, 6},
+    {1, 4, 7},
+    {2, 5, 8},
+    {0, 4, 8},
+    {2, 4, 6}
+};
+// clang-format on
 
 int SatisfiesWinCondition(const int* winConditions, BoardTile player) {
     return (
