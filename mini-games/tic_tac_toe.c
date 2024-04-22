@@ -184,7 +184,12 @@ static int GetInputKey();
 static inline bool IsRunning();
 static inline void SetRunning(bool toggle);
 
-typedef enum eSceneType { SCENE_NONE = 0, SCENE_MENU, SCENE_GAME, SCENE_EXIT } SceneType;
+typedef enum eSceneType {
+    SCENE_NONE = 0,
+    SCENE_MENU,
+    SCENE_GAME,
+    SCENE_EXIT
+} SceneType;
 
 typedef enum eMenuStateType {
     MENU_MAIN = 0x1000,
@@ -193,7 +198,11 @@ typedef enum eMenuStateType {
     MENU_ORDER = 0x4000
 } MenuStateType;
 
-typedef enum ePlayerType { PLAYER_NONE = 0, PLAYER_AI, PLAYER_HUMAN } PlayerType;
+typedef enum ePlayerType {
+    PLAYER_NONE = 0,
+    PLAYER_AI,
+    PLAYER_HUMAN
+} PlayerType;
 
 typedef enum eBoardTile {
     TILE_PLAYER_TWO = -1,
@@ -212,11 +221,11 @@ typedef struct Menu_SceneData {
     MenuStateType currentState;
     bool isDraw;
 } Menu_SceneData;
-Menu_SceneData menuData = {MENU_MAIN, false};
+Menu_SceneData menuData = { MENU_MAIN, false };
 void Menu_ProcessInput();
 void Menu_Update();
 void Menu_Draw();
-static Scene sceneMenu = {Menu_ProcessInput, Menu_Update, Menu_Draw};
+static Scene sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
 
 static const char* MESSAGE_EMPTY = NULL;
 static const char* MESSAGE_SELECT_TILE = "Select tile.";
@@ -242,9 +251,8 @@ typedef struct Game_SceneData {
     size_t messageCount;
 } Game_SceneData;
 Game_SceneData gameData = {
-    {PLAYER_NONE, PLAYER_NONE},
-    {TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY,
-     TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY},
+    { PLAYER_NONE, PLAYER_NONE },
+    { TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY },
     TILE_PLAYER_ONE,
     TILE_PLAYER_TWO,
     1,
@@ -270,7 +278,7 @@ void Game_ProcessInput();
 void Game_Update();
 void Game_Draw();
 void Game_Finalize();
-static Scene sceneGame = {Game_ProcessInput, Game_Update, Game_Draw};
+static Scene sceneGame = { Game_ProcessInput, Game_Update, Game_Draw };
 
 typedef struct Exit_SceneData {
     bool isDraw;
@@ -281,7 +289,11 @@ Exit_SceneData exitData = {
 void Exit_ProcessInput();
 void Exit_Update();
 void Exit_Draw();
-static Scene sceneExit = {Exit_ProcessInput, Exit_Update, Exit_Draw};
+static Scene sceneExit = {
+    Exit_ProcessInput,
+    Exit_Update,
+    Exit_Draw
+};
 
 static Scene* currentScene = &sceneMenu;
 static int inputKey = 0;
@@ -540,9 +552,9 @@ static const int winConditions[8][3] = {
 
 int SatisfiesWinCondition(const int* winConditions, BoardTile player) {
     return (
-        gameData.board[winConditions[0]] == player && gameData.board[winConditions[1]] == player
-        && gameData.board[winConditions[2]] == player
-    );
+        gameData.board[winConditions[0]] == player &&
+        gameData.board[winConditions[1]] == player &&
+        gameData.board[winConditions[2]] == player);
 }
 
 int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
@@ -557,23 +569,15 @@ int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
 static inline bool IsBoardFull() { return gameData.emptyTileCount < 1 ? true : false; }
 
 int Evaluate(BoardTile player, BoardTile opponent) {
-    if (HasPlayerWonGame(player, winConditions)) {
-        return 1;
-    }
-    if (HasPlayerWonGame(opponent, winConditions)) {
-        return -1;
-    }
-    if (IsBoardFull()) {
-        return 0;
-    }
+    if (HasPlayerWonGame(player, winConditions)) { return 1; }
+    if (HasPlayerWonGame(opponent, winConditions)) { return -1; }
+    if (IsBoardFull()) { return 0; }
     return -2; // game is not over yet
 }
 
 int MinimaxRecursive(BoardTile player, BoardTile opponent, int depth, bool maximizingPlayer) { // NOLINT
     int score = Evaluate(player, opponent);
-    if (score != -2 || depth == 0) {
-        return score;
-    }
+    if (score != -2 || depth == 0) { return score; }
 
     int bestValue = 0;
     if (maximizingPlayer) {
@@ -795,9 +799,7 @@ void Game_Update() {
 
 
 void Game_Draw() {
-    if (gameData.isDraw) {
-        return;
-    }
+    if (gameData.isDraw) { return; }
 
     DoSystemCls();
     ShowTurnsPlayer(0, 0);
@@ -852,9 +854,7 @@ void Exit_Update() {
 }
 
 void Exit_Draw() {
-    if (exitData.isDraw) {
-        return;
-    }
+    if (exitData.isDraw) { return; }
     puts("게임을 종료하시겠습니까? Y/n");
     exitData.isDraw = true;
 }
