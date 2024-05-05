@@ -140,8 +140,8 @@
 #define swap(_T, _a, _b) \
     do {                 \
         _T __t = (_a);   \
-        (_a) = (_b);     \
-        (_b) = __t;      \
+        (_a)   = (_b);   \
+        (_b)   = __t;    \
     } while (0)
 // #endregion // Pre-process_Definitions
 
@@ -149,9 +149,9 @@
 
 enum {
     MESSAGE_COUNT_MAX = 4,
-    MINIMAX_DEPTH = 8,
-    BOARD_SIZE = 9,
-    INPUT_MAP_SIZE = 256,
+    MINIMAX_DEPTH     = 8,
+    BOARD_SIZE        = 9,
+    INPUT_MAP_SIZE    = 256,
 };
 
 static inline void Assert(int condition, const char* message) {
@@ -163,9 +163,7 @@ static inline void Assert(int condition, const char* message) {
 
 static inline void Delay(clock_t waitMS) {
     clock_t endMS = waitMS + clock();
-    while (endMS > clock()) {
-        ;
-    }
+    while (endMS > clock()) { ; }
 }
 
 static void SetCursorVisible(int visible) { printf(visible ? "\x1B[?25h" : "\x1B[?25l"); }
@@ -180,7 +178,7 @@ static inline void DoSystemPause() {
 
 static inline void DoSystemCls() { printf("\x1B[2J\x1B[H"); }
 
-static int GetInputKey();
+static int         GetInputKey();
 static inline bool IsRunning();
 static inline void SetRunning(bool toggle);
 
@@ -192,10 +190,10 @@ typedef enum eSceneType {
 } SceneType;
 
 typedef enum eMenuStateType {
-    MENU_MAIN = 0x1000,
-    MENU_SELECTION = 0x2000,
+    MENU_MAIN       = 0x1000,
+    MENU_SELECTION  = 0x2000,
     MENU_DIFFICULTY = 0x3000,
-    MENU_ORDER = 0x4000
+    MENU_ORDER      = 0x4000
 } MenuStateType;
 
 typedef enum ePlayerType {
@@ -205,9 +203,9 @@ typedef enum ePlayerType {
 } PlayerType;
 
 typedef enum eBoardTile {
-    TILE_PLAYER_TWO = -1,
+    TILE_PLAYER_TWO   = -1,
     TILE_PLAYER_EMPTY = 0,
-    TILE_PLAYER_ONE = 1,
+    TILE_PLAYER_ONE   = 1,
 } BoardTile;
 
 // TODO(DevDasae): Implement State Machine
@@ -219,36 +217,36 @@ typedef struct Scene {
 
 typedef struct Menu_SceneData {
     MenuStateType currentState;
-    bool isDraw;
+    bool          isDraw;
 } Menu_SceneData;
 Menu_SceneData menuData = { MENU_MAIN, false };
-void Menu_ProcessInput();
-void Menu_Update();
-void Menu_Draw();
-static Scene sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
+void           Menu_ProcessInput();
+void           Menu_Update();
+void           Menu_Draw();
+static Scene   sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
 
-static const char* MESSAGE_EMPTY = NULL;
-static const char* MESSAGE_SELECT_TILE = "Select tile.";
+static const char* MESSAGE_EMPTY             = NULL;
+static const char* MESSAGE_SELECT_TILE       = "Select tile.";
 static const char* MESSAGE_TILE_IS_NOT_EMPTY = "This tile cannot be selected.";
 
 typedef struct Game_SceneData {
     PlayerType players[2];
-    BoardTile board[BOARD_SIZE];
-    BoardTile currentPlayer;
-    BoardTile currentOpponent;
-    int aiDifficulty;
-    int turnCount;
-    int emptyTileCount;
-    int currentPlayerIndex;
-    bool isDraw;
-    bool isOver;
-    bool toggleTileHint;
-    bool enqueuesAiMessage;
+    BoardTile  board[BOARD_SIZE];
+    BoardTile  currentPlayer;
+    BoardTile  currentOpponent;
+    int        aiDifficulty;
+    int        turnCount;
+    int        emptyTileCount;
+    int        currentPlayerIndex;
+    bool       isDraw;
+    bool       isOver;
+    bool       toggleTileHint;
+    bool       enqueuesAiMessage;
     // game message queue
     const char* messageQueue[MESSAGE_COUNT_MAX];
-    size_t messageHead;
-    size_t messageTail;
-    size_t messageCount;
+    size_t      messageHead;
+    size_t      messageTail;
+    size_t      messageCount;
 } Game_SceneData;
 Game_SceneData gameData = {
     { PLAYER_NONE, PLAYER_NONE },
@@ -273,11 +271,11 @@ Game_SceneData gameData = {
     0,
     0
 };
-void Game_Initialize(PlayerType player1, PlayerType player2);
-void Game_ProcessInput();
-void Game_Update();
-void Game_Draw();
-void Game_Finalize();
+void         Game_Initialize(PlayerType player1, PlayerType player2);
+void         Game_ProcessInput();
+void         Game_Update();
+void         Game_Draw();
+void         Game_Finalize();
 static Scene sceneGame = { Game_ProcessInput, Game_Update, Game_Draw };
 
 typedef struct Exit_SceneData {
@@ -286,9 +284,9 @@ typedef struct Exit_SceneData {
 Exit_SceneData exitData = {
     false,
 };
-void Exit_ProcessInput();
-void Exit_Update();
-void Exit_Draw();
+void         Exit_ProcessInput();
+void         Exit_Update();
+void         Exit_Draw();
 static Scene sceneExit = {
     Exit_ProcessInput,
     Exit_Update,
@@ -296,8 +294,8 @@ static Scene sceneExit = {
 };
 
 static Scene* currentScene = &sceneMenu;
-static int inputKey = 0;
-static bool isRunning = true;
+static int    inputKey     = 0;
+static bool   isRunning    = true;
 
 int GetInputKey() {
     if (kbhit()) {
@@ -310,9 +308,9 @@ int GetInputKey() {
     return -1;
 }
 
-inline bool IsRunning() { return isRunning; }
+static inline bool IsRunning() { return isRunning; }
 
-inline void SetRunning(bool toggle) { isRunning = toggle; }
+static inline void SetRunning(bool toggle) { isRunning = toggle; }
 
 void Menu_ProcessInput() {
     inputKey = GetInputKey();
@@ -337,12 +335,12 @@ void Menu_Update() {
     case MENU_MAIN:
         switch (inputKey) {
         case 1:
-            menuData.isDraw = false;
+            menuData.isDraw       = false;
             menuData.currentState = MENU_SELECTION;
             break;
         case 2:
             menuData.isDraw = false;
-            currentScene = &sceneExit;
+            currentScene    = &sceneExit;
             break;
         default:
             break;
@@ -366,7 +364,7 @@ void Menu_Update() {
         default:
             break;
         }
-        menuData.isDraw = false;
+        menuData.isDraw       = false;
         menuData.currentState = MENU_MAIN;
         break;
     default:
@@ -375,9 +373,7 @@ void Menu_Update() {
 }
 
 void Menu_Draw() {
-    if (menuData.isDraw) {
-        return;
-    }
+    if (menuData.isDraw) { return; }
     DoSystemCls();
     switch (menuData.currentState) {
     case MENU_MAIN:
@@ -463,7 +459,7 @@ static const char* boardLayout = "\
 ";
 
 void DrawGameBoard(short posX, short posY) {
-    int index = 0;
+    int index     = 0;
     int tileIndex = 0;
     SetCursorPosition(posX, posY);
 
@@ -495,8 +491,8 @@ void DrawGameBoard(short posX, short posY) {
 
 void ClearMessageQueue() {
     gameData.messageCount = 0;
-    gameData.messageHead = 0;
-    gameData.messageTail = 0;
+    gameData.messageHead  = 0;
+    gameData.messageTail  = 0;
 
     for (int i = 0; i < MESSAGE_COUNT_MAX; ++i) {
         gameData.messageQueue[i] = MESSAGE_EMPTY;
@@ -504,18 +500,20 @@ void ClearMessageQueue() {
 }
 
 void DequeueMessage() {
-    gameData.messageCount--;
     gameData.messageQueue[gameData.messageHead] = MESSAGE_EMPTY;
+
     gameData.messageHead = (gameData.messageHead + 1) % MESSAGE_COUNT_MAX;
+    gameData.messageCount--;
 }
 
 void EnqueueMessage(const char* pMessage) {
     if (gameData.messageCount >= MESSAGE_COUNT_MAX) {
         DequeueMessage();
     }
-    gameData.messageCount++;
     gameData.messageQueue[gameData.messageTail] = pMessage;
+
     gameData.messageTail = (gameData.messageTail + 1) % MESSAGE_COUNT_MAX;
+    gameData.messageCount++;
 }
 
 void DrawMessageBox(short posX, short posY) {
@@ -526,7 +524,7 @@ void DrawMessageBox(short posX, short posY) {
 }
 
 static unsigned char sentenceHuman[] = "The previous player checked $.";
-static unsigned char sentenceAI[] = "The computer checked $.";
+static unsigned char sentenceAI[]    = "The computer checked $.";
 
 const char* GetPlayerCheckedMessage(PlayerType type, int checkTile) { // NOLINT
     if (type == PLAYER_HUMAN) {
@@ -551,10 +549,9 @@ static const int winConditions[8][3] = {
 // clang-format on
 
 int SatisfiesWinCondition(const int* winConditions, BoardTile player) {
-    return (
-        gameData.board[winConditions[0]] == player &&
-        gameData.board[winConditions[1]] == player &&
-        gameData.board[winConditions[2]] == player);
+    return (gameData.board[winConditions[0]] == player &&
+            gameData.board[winConditions[1]] == player &&
+            gameData.board[winConditions[2]] == player);
 }
 
 int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
@@ -585,9 +582,9 @@ int MinimaxRecursive(BoardTile player, BoardTile opponent, int depth, bool maxim
         for (int i = 0; i < BOARD_SIZE; ++i) {
             if (gameData.board[i] == TILE_PLAYER_EMPTY) {
                 gameData.board[i] = player;
-                int value = MinimaxRecursive(player, opponent, depth - 1, false);
+                int value         = MinimaxRecursive(player, opponent, depth - 1, false);
                 gameData.board[i] = TILE_PLAYER_EMPTY;
-                bestValue = max(bestValue, value);
+                bestValue         = max(bestValue, value);
             }
         }
     } else {
@@ -595,9 +592,9 @@ int MinimaxRecursive(BoardTile player, BoardTile opponent, int depth, bool maxim
         for (int i = 0; i < BOARD_SIZE; ++i) {
             if (gameData.board[i] == TILE_PLAYER_EMPTY) {
                 gameData.board[i] = opponent;
-                int value = MinimaxRecursive(opponent, player, depth - 1, true);
+                int value         = MinimaxRecursive(opponent, player, depth - 1, true);
                 gameData.board[i] = TILE_PLAYER_EMPTY;
-                bestValue = min(bestValue, value);
+                bestValue         = min(bestValue, value);
             }
         }
     }
@@ -615,44 +612,44 @@ void Game_Initialize(PlayerType player1, PlayerType player2) {
         gameData.board[i] = TILE_PLAYER_EMPTY;
     }
 
-    gameData.currentPlayer = TILE_PLAYER_ONE;
-    gameData.currentOpponent = TILE_PLAYER_TWO;
+    gameData.currentPlayer      = TILE_PLAYER_ONE;
+    gameData.currentOpponent    = TILE_PLAYER_TWO;
     gameData.currentPlayerIndex = 0;
-    gameData.turnCount = 2;
-    gameData.emptyTileCount = BOARD_SIZE;
-    gameData.isDraw = false;
-    gameData.isOver = false;
-    gameData.enqueuesAiMessage = false;
+    gameData.turnCount          = 2;
+    gameData.emptyTileCount     = BOARD_SIZE;
+    gameData.isDraw             = false;
+    gameData.isOver             = false;
+    gameData.enqueuesAiMessage  = false;
     ClearMessageQueue();
 
     EnqueueMessage(MESSAGE_SELECT_TILE);
 }
 
 enum InputKey {
-    KEY_NONE = -1,
-    KEY_0 = '0',
-    KEY_1 = '1',
-    KEY_2 = '2',
-    KEY_3 = '3',
-    KEY_4 = '4',
-    KEY_5 = '5',
-    KEY_6 = '6',
-    KEY_7 = '7',
-    KEY_8 = '8',
-    KEY_9 = '9',
-    KEY_Q = 'q',
-    KEY_W = 'w',
-    KEY_E = 'e',
-    KEY_A = 'a',
-    KEY_S = 's',
-    KEY_D = 'd',
-    KEY_Z = 'z',
-    KEY_X = 'x',
-    KEY_C = 'c',
-    KEY_H = 'h',
+    KEY_NONE  = -1,
+    KEY_0     = '0',
+    KEY_1     = '1',
+    KEY_2     = '2',
+    KEY_3     = '3',
+    KEY_4     = '4',
+    KEY_5     = '5',
+    KEY_6     = '6',
+    KEY_7     = '7',
+    KEY_8     = '8',
+    KEY_9     = '9',
+    KEY_Q     = 'q',
+    KEY_W     = 'w',
+    KEY_E     = 'e',
+    KEY_A     = 'a',
+    KEY_S     = 's',
+    KEY_D     = 'd',
+    KEY_Z     = 'z',
+    KEY_X     = 'x',
+    KEY_C     = 'c',
+    KEY_H     = 'h',
     KEY_ENTER = 13,
     KEY_SPACE = 32,
-    KEY_ESC = 27,
+    KEY_ESC   = 27,
 };
 
 void Game_ProcessInput() {
@@ -706,7 +703,7 @@ void Game_ProcessInput() {
         break;
     case KEY_H:
         gameData.toggleTileHint = !gameData.toggleTileHint;
-        gameData.isDraw = false;
+        gameData.isDraw         = false;
         break;
     default:
         inputKey = KEY_NONE;
@@ -727,12 +724,12 @@ int GetAIMove(int difficulty, BoardTile* board, BoardTile player, BoardTile oppo
     int bestValue = INT_MIN;
     for (int i = 0; i < BOARD_SIZE; i++) {
         if (board[i] == TILE_PLAYER_EMPTY) {
-            board[i] = player;
+            board[i]         = player;
             int currentValue = MinimaxRecursive(player, opponent, difficulty, true);
-            board[i] = TILE_PLAYER_EMPTY;
+            board[i]         = TILE_PLAYER_EMPTY;
             if (currentValue > bestValue) {
                 bestValue = currentValue;
-                aiMove = i;
+                aiMove    = i;
             }
         }
     }
@@ -742,9 +739,9 @@ int GetAIMove(int difficulty, BoardTile* board, BoardTile player, BoardTile oppo
 // TODO(DevDasae) : Add New Game Mode
 void Game_Update() {
     gameData.currentPlayerIndex = GetPlayerIndex(gameData.currentPlayer);
-    bool isHumanTurn = gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN;
-    bool isGameOver = gameData.isOver;
-    bool isDrawn = gameData.isDraw;
+    bool const isHumanTurn      = gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN;
+    bool       isGameOver       = gameData.isOver;
+    bool       isDrawn          = gameData.isDraw;
 
     if ((isHumanTurn && inputKey == -1) || !isDrawn || isGameOver) {
         return;
@@ -768,9 +765,9 @@ void Game_Update() {
             return;
         }
         gameData.enqueuesAiMessage = false;
-        int aiMove = GetAIMove(gameData.aiDifficulty, gameData.board, gameData.currentPlayer, gameData.currentOpponent);
-        gameData.board[aiMove] = gameData.currentPlayer;
-        inputKey = aiMove + 1;
+        int aiMove                 = GetAIMove(gameData.aiDifficulty, gameData.board, gameData.currentPlayer, gameData.currentOpponent);
+        gameData.board[aiMove]     = gameData.currentPlayer;
+        inputKey                   = aiMove + 1;
     }
     EnqueueMessage(GetPlayerCheckedMessage(gameData.players[gameData.currentPlayerIndex], inputKey - 1));
 
@@ -818,14 +815,14 @@ void Game_Finalize() {
         gameData.board[i] = TILE_PLAYER_EMPTY;
     }
 
-    gameData.currentPlayer = TILE_PLAYER_ONE;
-    gameData.currentOpponent = TILE_PLAYER_TWO;
+    gameData.currentPlayer      = TILE_PLAYER_ONE;
+    gameData.currentOpponent    = TILE_PLAYER_TWO;
     gameData.currentPlayerIndex = 0;
-    gameData.turnCount = 0;
-    gameData.emptyTileCount = BOARD_SIZE;
-    gameData.isDraw = false;
-    gameData.isOver = false;
-    gameData.enqueuesAiMessage = false;
+    gameData.turnCount          = 0;
+    gameData.emptyTileCount     = BOARD_SIZE;
+    gameData.isDraw             = false;
+    gameData.isOver             = false;
+    gameData.enqueuesAiMessage  = false;
     ClearMessageQueue();
 }
 
@@ -845,7 +842,7 @@ void Exit_Update() {
     switch (inputKey) {
     case 1:
         exitData.isDraw = false;
-        currentScene = &sceneMenu;
+        currentScene    = &sceneMenu;
     case -1:
         break;
     default:
