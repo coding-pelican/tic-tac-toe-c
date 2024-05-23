@@ -461,7 +461,10 @@ static const char* boardLayout = "\
 void DrawGameBoard(short posX, short posY) {
     int index     = 0;
     int tileIndex = 0;
-    SetCursorPosition(posX, posY);
+    SetCursorPosition(
+        posX,
+        posY
+    );
 
     while (boardLayout[index] != '\0') {
         switch (boardLayout[index]) {
@@ -549,9 +552,7 @@ static const int winConditions[8][3] = {
 // clang-format on
 
 int SatisfiesWinCondition(const int* winConditions, BoardTile player) {
-    return (gameData.board[winConditions[0]] == player &&
-            gameData.board[winConditions[1]] == player &&
-            gameData.board[winConditions[2]] == player);
+    return (gameData.board[winConditions[0]] == player && gameData.board[winConditions[1]] == player && gameData.board[winConditions[2]] == player);
 }
 
 int HasPlayerWonGame(BoardTile player, const int winConditions[8][3]) {
