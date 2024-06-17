@@ -1,6 +1,6 @@
 /**
  * @file tic_tac_toe.c
- * @author Gyeongtae Kim(DevDasae, @coding-pelican) <codingpelican@gmail.com>
+ * @author Gyeongtae Kim(dev-dasae) <codingpelican@gmail.com>
  *
  * @brief Tic-tac-toe game implemented in C for study purpose
     and alpha-beta pruning algorithm implementation test
