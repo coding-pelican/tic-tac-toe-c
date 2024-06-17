@@ -8,7 +8,7 @@
  * @version 0.2
  * @date 2024-04-07
  *
- * @copyright Copyright (c) 2023
+ * @copyright Released under the MIT License. See LICENSE file for details.
  */
 
 
