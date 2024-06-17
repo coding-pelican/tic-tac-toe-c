@@ -1,4 +1,4 @@
-﻿#include <stdbool.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 
@@ -24,53 +24,53 @@ struct Scene {
     void (*const Draw)();
 };
 
-void SceneMain_ProcessInput();
-void SceneMain_Update();
-void SceneMain_Draw();
+void   SceneMain_ProcessInput();
+void   SceneMain_Update();
+void   SceneMain_Draw();
 Scene* SceneMain() {
     static Scene scene = {
-        .type = eSceneType_Main,
+        .type         = eSceneType_Main,
         .ProcessInput = &SceneMain_ProcessInput,
-        .Update = &SceneMain_Update,
-        .Draw = &SceneMain_Draw,
+        .Update       = &SceneMain_Update,
+        .Draw         = &SceneMain_Draw,
     };
     return &scene;
 }
 
-void SceneGame_ProcessInput();
-void SceneGame_Update();
-void SceneGame_Draw();
+void   SceneGame_ProcessInput();
+void   SceneGame_Update();
+void   SceneGame_Draw();
 Scene* SceneGame() {
     static Scene scene = {
-        .type = eSceneType_Game,
+        .type         = eSceneType_Game,
         .ProcessInput = &SceneGame_ProcessInput,
-        .Update = &SceneGame_Update,
-        .Draw = &SceneGame_Draw,
+        .Update       = &SceneGame_Update,
+        .Draw         = &SceneGame_Draw,
     };
     return &scene;
 }
 
-void SceneQuit_ProcessInput();
-void SceneQuit_Update();
-void SceneQuit_Draw();
+void   SceneQuit_ProcessInput();
+void   SceneQuit_Update();
+void   SceneQuit_Draw();
 Scene* SceneQuit() {
     static Scene scene = {
-        .type = eSceneType_Quit,
+        .type         = eSceneType_Quit,
         .ProcessInput = &SceneQuit_ProcessInput,
-        .Update = &SceneQuit_Update,
-        .Draw = &SceneQuit_Draw,
+        .Update       = &SceneQuit_Update,
+        .Draw         = &SceneQuit_Draw,
     };
     return &scene;
 }
 
 static Scene* const* Scenes() {
-    static Scene* scenes[kSceneType_Count] = {0};
-    static bool isInitialized = false;
+    static Scene* scenes[kSceneType_Count] = { 0 };
+    static bool   isInitialized            = false;
     if (!isInitialized) {
         scenes[eSceneType_Main] = SceneMain();
         scenes[eSceneType_Game] = SceneGame();
         scenes[eSceneType_Quit] = SceneQuit();
-        isInitialized = true;
+        isInitialized           = true;
     }
     return scenes;
 }
@@ -82,7 +82,7 @@ struct App {
     void (*const Release)();
 
     Scene* currentScene;
-    bool isRunning;
+    bool   isRunning;
 };
 
 void App_Initial();
@@ -104,7 +104,7 @@ void App_Initial() {
     DoSystemCls();
 
     App.currentScene = Scenes()[eSceneType_Main];
-    App.isRunning = true;
+    App.isRunning    = true;
 }
 
 void App_Loop() {

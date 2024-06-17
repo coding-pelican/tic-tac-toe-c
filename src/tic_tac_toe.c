@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file tic_tac_toe.c
  * @author Gyeongtae Kim(DevDasae, @coding-pelican) <codingpelican@gmail.com>
  *

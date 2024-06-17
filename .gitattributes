@@ -1,4 +1,4 @@
-﻿# Set the default behavior for all files.
+# Set the default behavior for all files.
 * text=auto eol=lf
 
 # Normalized and converts to native line endings on checkout.
