@@ -21,7 +21,7 @@ This is an implementation of the classic Tic Tac Toe game in C. The game allows 
 1. Clone the repository:
 
 ```shell
-git clone https://github.com/your-username/tic-tac-toe.git
+git clone https://github.com/coding-pelican/tic-tac-toe-c.git
 ```
 
 2. Navigate to the project directory:
