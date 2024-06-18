@@ -74,5 +74,6 @@ The source code is organized as follows:
 
 ## Contact
 
-For any questions or suggestions, please contact at
-[codingpelican@gmail.com](mailto:codingpelican@gmail.com).
+For any questions or inquiries, please contact the project author:
+- Name: Gyeongtae Kim
+- Email: <codingpelican@gmail.com>
