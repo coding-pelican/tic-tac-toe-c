@@ -14,7 +14,7 @@ This is an implementation of the classic Tic Tac Toe game in C. The game allows 
 
 ### Prerequisites
 
-- C compiler (e.g., CLANG, GCC)
+- C compiler (e.g., GCC, Clang, or MSVC)
 
 ### Building and Running
 
@@ -57,6 +57,10 @@ clang tic_tac_toe.c -o tic_tac_toe
 The source code is organized as follows:
 - `tic_tac_toe.c`: Contains the main game logic, including the game loop, input handling, game state management, and AI decision making.
 - `README.md`: Provides an overview of the game and instructions for building and running the code.
+
+## License
+
+This project is released under the MIT License. See the [LICENSE](./LICENSE) file for more details.
 
 ## Future improvements
 
