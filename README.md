@@ -46,9 +46,9 @@ clang tic_tac_toe.c -o tic_tac_toe
 
 1. Launch the game executable.
 2. From the main menu, select the game mode:
-- Play with Another Player
-- Play with A.I.
-- Watch A.I. game play
+   - Play with Another Player
+   - Play with A.I.
+   - Watch A.I. game play
 3. Follow the on-screen instructions to make your moves.
 4. The game will display the winner or a draw when the game ends.
 
