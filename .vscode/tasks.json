@@ -16,109 +16,98 @@
     { // backup settings
       "label": "backup settings",
       "type": "shell",
-      "command": "python ${workspaceFolder}/.vscode/backup_settings.py"
+      "windows": {
+        "command": "python ${workspaceFolder}\\.vscode\\backup_settings.py"
+      },
+      "linux": {
+        "command": "python ${workspaceFolder}/.vscode/backup_settings.py"
+      },
     },
     { // merge settings
       "label": "merge settings",
       "type": "shell",
-      "command": "python ${workspaceFolder}/.vscode/merge_settings.py ${fileDirname}"
-    },
-    { // restore settings
-      "label": "restore settings",
-      "type": "shell",
-      "command": "python ${workspaceFolder}/.vscode/restore_settings.py",
-      "group": {
-        "kind": "build",
-        "isDefault": false
+      "windows": {
+        "command": "python ${workspaceFolder}\\.vscode\\merge_settings.py ${fileDirname}"
+      },
+      "linux": {
+        "command": "python ${workspaceFolder}/.vscode/merge_settings.py ${fileDirname}"
       }
+    },
+    { // restore settings on building
+      "label": "restore settings on building",
+      "type": "shell",
+      "windows": {
+        "command": "python ${workspaceFolder}\\.vscode\\restore_settings.py",
+      },
+      "linux": {
+        "command": "python ${workspaceFolder}/.vscode/restore_settings.py",
+      }
+    },
+    { // restore settings on built
+      "label": "restore settings on built",
+      "type": "shell",
+      "windows": {
+        "command": "python ${workspaceFolder}\\.vscode\\restore_settings.py",
+      },
+      "linux": {
+        "command": "python ${workspaceFolder}/.vscode/restore_settings.py",
+      }
+    },
+    { // on building
+      "label": "on building",
+      "type": "shell",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "restore settings on building",
+        "backup settings",
+        "merge settings"
+      ]
+    },
+    { // on built
+      "label": "on built",
+      "type": "shell",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "restore settings on built"
+      ]
     },
     { // build multi-file with clang
       "label": "build multi-file with clang",
       "type": "shell",
-      "command": "clang",
       "windows": {
-        "args": [
-          "-std=c17",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
-          "${config:tasks.C_ARGS_BASE}",
-          "-o",
-          "${fileDirname}\\${fileDirnameBasename}.exe",
-          "${config:tasks.C_ARGS}"
-        ],
+        "command": "clang -xc ${config:tasks.c_args_base} -o ${fileDirname}\\${fileDirnameBasename}.exe ${config:tasks.c_args}",
         "options": {
           "cwd": "C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin"
         }
       },
       "linux": {
-        "args": [
-          "-std=c17",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
-          "${config:tasks.C_ARGS_BASE}",
-          "-o",
-          "${fileDirname}/${fileDirnameBasename}",
-          "${config:tasks.C_ARGS}"
-        ],
+        "command": "clang -xc ${config:tasks.c_args_base} -o ${fileDirname}/${fileDirnameBasename} ${config:tasks.c_args}",
         "options": {
           "cwd": "/usr/bin"
         }
       },
       "problemMatcher": [
         "$gcc"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      }
+      ]
     },
     { // build multi-file with clang++
       "label": "build multi-file with clang++",
       "type": "shell",
-      "command": "clang++",
       "windows": {
-        "args": [
-          "-std=c++20",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
-          "${config:tasks.CPP_ARGS_BASE}",
-          "-o",
-          "${fileDirname}\\${fileDirnameBasename}.exe",
-          "${config:tasks.CPP_ARGS}"
-        ],
+        "command": "clang++ -xc++ ${config:tasks.cpp_args_base} -o ${fileDirname}\\${fileDirnameBasename}.exe ${config:tasks.cpp_args}",
         "options": {
           "cwd": "C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin"
         }
       },
       "linux": {
-        "args": [
-          "-std=c++20",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
-          "${config:tasks.CPP_ARGS_BASE}",
-          "-o",
-          "${fileDirname}/${fileDirnameBasename}",
-          "${config:tasks.CPP_ARGS}"
-        ],
+        "command": "clang++ -xc++ ${config:tasks.cpp_args_base} -o ${fileDirname}/${fileDirnameBasename} ${config:tasks.cpp_args}",
         "options": {
           "cwd": "/usr/bin"
         }
       },
       "problemMatcher": [
         "$gcc"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      }
+      ]
     },
     { // clang build active file for C
       "label": "clang build active file for C",
@@ -126,35 +115,37 @@
       "command": "clang",
       "windows": {
         "args": [
-          "-std=c17",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
+          "-xc",
           "${file}",
           "-o",
-          "${fileDirname}\\${fileBasenameNoExtension}.exe"
+          "${fileDirname}\\${fileBasenameNoExtension}.exe",
+          "-std=c17",
+          "-fdiagnostics-color=always",
+          "-Wall",
+          "-Wextra",
+          "-g"
         ],
         "options": {
           "cwd": "C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin"
         },
-        "detail": "컴파일러: C:/dasae-storage/dev/tools/msys64/ucrt64/bin/clang.exe"
+        "detail": "Compiler: C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin\\clang.exe"
       },
       "linux": {
         "args": [
-          "-std=c17",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
+          "-xc",
           "${file}",
           "-o",
-          "${fileDirname}/${fileBasenameNoExtension}"
+          "${fileDirname}/${fileBasenameNoExtension}",
+          "-std=c17",
+          "-fdiagnostics-color=always",
+          "-Wall",
+          "-Wextra",
+          "-g"
         ],
         "options": {
           "cwd": "/usr/bin"
         },
-        "detail": "compiler: /usr/bin/clang"
+        "detail": "Compiler: /usr/bin/clang"
       },
       "problemMatcher": [
         "$gcc"
@@ -170,35 +161,37 @@
       "command": "clang++",
       "windows": {
         "args": [
-          "-std=c++20",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
+          "-xc++",
           "${file}",
           "-o",
-          "${fileDirname}\\${fileBasenameNoExtension}.exe"
+          "${fileDirname}\\${fileBasenameNoExtension}.exe",
+          "-std=c++20",
+          "-fdiagnostics-color=always",
+          "-Wall",
+          "-Wextra",
+          "-g"
         ],
         "options": {
           "cwd": "C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin"
         },
-        "detail": "컴파일러: C:/dasae-storage/dev/tools/msys64/ucrt64/bin/clang++.exe"
+        "detail": "Compiler: C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin\\clang++.exe"
       },
       "linux": {
         "args": [
-          "-std=c++20",
-          "-Wall",
-          "-Wextra",
-          "-fdiagnostics-color=always",
-          "-g",
+          "-xc++",
           "${file}",
           "-o",
-          "${fileDirname}/${fileBasenameNoExtension}"
+          "${fileDirname}/${fileBasenameNoExtension}",
+          "-std=c++20",
+          "-fdiagnostics-color=always",
+          "-Wall",
+          "-Wextra",
+          "-g"
         ],
         "options": {
           "cwd": "/usr/bin"
         },
-        "detail": "compiler: /usr/bin/clang++"
+        "detail": "Compiler: /usr/bin/clang++"
       },
       "problemMatcher": [
         "$gcc"
@@ -213,17 +206,15 @@
       "type": "shell",
       "dependsOrder": "sequence",
       "dependsOn": [
-        "restore settings",
-        "backup settings",
-        "merge settings",
+        "on building",
         "build multi-file with clang",
-        "restore settings"
+        "on built"
       ],
       "windows": {
-        "detail": "컴파일러: C:/dasae-storage/dev/tools/msys64/ucrt64/bin/clang.exe"
+        "detail": "Compiler: C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin\\clang.exe"
       },
       "linux": {
-        "detail": "compiler: /usr/bin/clang"
+        "detail": "Compiler: /usr/bin/clang"
       },
       "group": {
         "kind": "build",
@@ -235,17 +226,15 @@
       "type": "shell",
       "dependsOrder": "sequence",
       "dependsOn": [
-        "restore settings",
-        "backup settings",
-        "merge settings",
+        "on building",
         "build multi-file with clang++",
-        "restore settings"
+        "on built"
       ],
       "windows": {
-        "detail": "컴파일러: C:/dasae-storage/dev/tools/msys64/ucrt64/bin/clang++.exe"
+        "detail": "Compiler: C:\\dasae-storage\\dev\\tools\\msys64\\ucrt64\\bin\\clang++.exe"
       },
       "linux": {
-        "detail": "compiler: /usr/bin/clang++"
+        "detail": "Compiler: /usr/bin/clang++"
       },
       "group": {
         "kind": "build",
@@ -255,9 +244,6 @@
     { // execute built active file
       "label": "execute built active file",
       "type": "shell",
-      "options": {
-        "cwd": "${fileDirname}"
-      },
       "windows": {
         "command": "cmd.exe",
         "args": [
@@ -274,6 +260,9 @@
           "rm /f ${fileBasenameNoExtension}"
         ]
       },
+      "options": {
+        "cwd": "${fileDirname}"
+      },
       "group": {
         "kind": "test",
         "isDefault": false
@@ -282,9 +271,6 @@
     { // execute built multi-file
       "label": "execute built multi-file",
       "type": "shell",
-      "options": {
-        "cwd": "${fileDirname}",
-      },
       "windows": {
         "command": "cmd.exe",
         "args": [
@@ -300,6 +286,9 @@
           "&&",
           "rm /f ${fileDirnameBasename}"
         ]
+      },
+      "options": {
+        "cwd": "${fileDirname}",
       },
       "group": {
         "kind": "test",
