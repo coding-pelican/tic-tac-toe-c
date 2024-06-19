@@ -1,0 +1,3 @@
+[submodule ".configs"]
+	path = .configs
+	url = https://github.com/coding-pelican/c-cpp-configs.git
