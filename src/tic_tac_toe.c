@@ -70,30 +70,31 @@ static int         GetInputKey();
 static inline bool IsRunning();
 static inline void SetRunning(bool toggle);
 
-typedef enum eSceneType {
-    SCENE_NONE = 0,
-    SCENE_MENU,
-    SCENE_GAME,
-    SCENE_EXIT
+typedef enum eSceneStateType {
+    SceneState_None = 0,
+    SceneState_Menu,
+    SceneState_Game,
+    SceneState_Quit
 } SceneType;
 
 typedef enum eMenuStateType {
-    MENU_MAIN       = 0x1000,
-    MENU_SELECTION  = 0x2000,
-    MENU_DIFFICULTY = 0x3000,
-    MENU_ORDER      = 0x4000
+    MenuState_None = 0,
+    MenuState_Main,
+    MenuState_SelectionPlayMode,
+    MenuState_SelectionAILevel,
+    MenuState_SelectionPlayerOrder
 } MenuStateType;
 
 typedef enum ePlayerType {
-    PLAYER_NONE = 0,
-    PLAYER_AI,
-    PLAYER_HUMAN
+    Player_None = 0,
+    Player_AI,
+    Player_Human
 } PlayerType;
 
 typedef enum eBoardTile {
-    TILE_PLAYER_TWO   = -1,
-    TILE_PLAYER_EMPTY = 0,
-    TILE_PLAYER_ONE   = 1,
+    BoardTile_PlayerTwo   = -1,
+    BoardTile_PlayerEmpty = 0,
+    BoardTile_PlayerOne   = 1,
 } BoardTile;
 
 // TODO(DevDasae): Implement State Machine
@@ -105,17 +106,17 @@ typedef struct Scene {
 
 typedef struct Menu_SceneData {
     MenuStateType currentState;
-    bool          isDraw;
+    bool          redraws;
 } Menu_SceneData;
-Menu_SceneData menuData = { MENU_MAIN, false };
+Menu_SceneData menuData = { MenuState_Main, false };
 void           Menu_ProcessInput();
 void           Menu_Update();
 void           Menu_Draw();
 static Scene   sceneMenu = { Menu_ProcessInput, Menu_Update, Menu_Draw };
 
-static const char* MESSAGE_EMPTY             = NULL;
-static const char* MESSAGE_SELECT_TILE       = "Select tile.";
-static const char* MESSAGE_TILE_IS_NOT_EMPTY = "This tile cannot be selected.";
+static const char* MESSAGE_EMPTY                  = NULL;
+static const char* MESSAGE_SELECT_TILE            = "Select tile.";
+static const char* MESSAGE_BoardTile_IS_NOT_EMPTY = "This tile cannot be selected.";
 
 typedef struct Game_SceneData {
     PlayerType players[2];
@@ -126,7 +127,7 @@ typedef struct Game_SceneData {
     int        turnCount;
     int        emptyTileCount;
     int        currentPlayerIndex;
-    bool       isDraw;
+    bool       redraws;
     bool       isOver;
     bool       toggleTileHint;
     bool       enqueuesAiMessage;
@@ -137,10 +138,10 @@ typedef struct Game_SceneData {
     size_t      messageCount;
 } Game_SceneData;
 Game_SceneData gameData = {
-    { PLAYER_NONE, PLAYER_NONE },
-    { TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY, TILE_PLAYER_EMPTY },
-    TILE_PLAYER_ONE,
-    TILE_PLAYER_TWO,
+    { Player_None, Player_None },
+    { BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty, BoardTile_PlayerEmpty },
+    BoardTile_PlayerOne,
+    BoardTile_PlayerTwo,
     1,
     0,
     BOARD_SIZE,
@@ -167,18 +168,18 @@ void         Game_Finalize();
 static Scene sceneGame = { Game_ProcessInput, Game_Update, Game_Draw };
 
 typedef struct Exit_SceneData {
-    bool isDraw;
+    bool redraws;
 } Exit_SceneData;
-Exit_SceneData exitData = {
+Exit_SceneData quitData = {
     false,
 };
-void         Exit_ProcessInput();
-void         Exit_Update();
-void         Exit_Draw();
+void         Quit_ProcessInput();
+void         Quit_Update();
+void         Quit_Draw();
 static Scene sceneExit = {
-    Exit_ProcessInput,
-    Exit_Update,
-    Exit_Draw
+    Quit_ProcessInput,
+    Quit_Update,
+    Quit_Draw
 };
 
 static Scene* currentScene = &sceneMenu;
@@ -204,13 +205,13 @@ void Menu_ProcessInput() {
     inputKey = GetInputKey();
 
     switch (inputKey) {
-    case ('1'):
+    case '1':
         inputKey = 1;
         break;
-    case ('2'):
+    case '2':
         inputKey = 2;
         break;
-    case ('3'):
+    case '3':
         inputKey = 3;
         break;
     default:
@@ -220,40 +221,40 @@ void Menu_ProcessInput() {
 
 void Menu_Update() {
     switch (menuData.currentState) {
-    case MENU_MAIN:
+    case MenuState_Main:
         switch (inputKey) {
         case 1:
-            menuData.isDraw       = false;
-            menuData.currentState = MENU_SELECTION;
+            menuData.redraws      = false;
+            menuData.currentState = MenuState_SelectionPlayMode;
             break;
         case 2:
-            menuData.isDraw = false;
-            currentScene    = &sceneExit;
+            menuData.redraws = false;
+            currentScene     = &sceneExit;
             break;
         default:
             break;
         }
         break;
-    case MENU_SELECTION:
+    case MenuState_SelectionPlayMode:
         switch (inputKey) {
         case -1:
             return;
         case 1:
-            Game_Initialize(PLAYER_HUMAN, PLAYER_HUMAN);
+            Game_Initialize(Player_Human, Player_Human);
             currentScene = &sceneGame;
             break;
         case 2:
-            Game_Initialize(PLAYER_HUMAN, PLAYER_AI);
+            Game_Initialize(Player_Human, Player_AI);
             currentScene = &sceneGame;
             break;
         case 3:
-            Game_Initialize(PLAYER_AI, PLAYER_AI);
+            Game_Initialize(Player_AI, Player_AI);
             currentScene = &sceneGame;
         default:
             break;
         }
-        menuData.isDraw       = false;
-        menuData.currentState = MENU_MAIN;
+        menuData.redraws      = false;
+        menuData.currentState = MenuState_Main;
         break;
     default:
         break;
@@ -261,17 +262,17 @@ void Menu_Update() {
 }
 
 void Menu_Draw() {
-    if (menuData.isDraw) { return; }
+    if (menuData.redraws) { return; }
     DoSystemCls();
     switch (menuData.currentState) {
-    case MENU_MAIN:
+    case MenuState_Main:
         puts("Tic Tac Toe\n");
 
-        puts("1. 새 게임");
-        puts("2. 종료");
+        puts("1. New Game");
+        puts("2. Quit");
         break;
 
-    case MENU_SELECTION:
+    case MenuState_SelectionPlayMode:
         puts("Select Game Play Mode\n");
 
         puts("- 1. Play with Another Player");
@@ -281,14 +282,14 @@ void Menu_Draw() {
         puts("- or Go To Menu");
         break;
 
-    case MENU_ORDER:
+    case MenuState_SelectionPlayerOrder:
         puts("Select Order of Player\n");
 
         puts("- 1. Player 1");
         puts("- 2. Player 2\n");
         break;
 
-    case MENU_DIFFICULTY:
+    case MenuState_SelectionAILevel:
         puts("Select Game A.I. Difficult\n");
 
         puts("- 1. Easy");
@@ -299,7 +300,7 @@ void Menu_Draw() {
         printf("Error\n");
         break;
     }
-    menuData.isDraw = true;
+    menuData.redraws = true;
 }
 
 void ShowTurnsPlayer(short posX, short posY) {
@@ -326,11 +327,11 @@ static inline unsigned char GetTileHintByTile(int index) { return tileHintKeyByT
 
 unsigned char GetTileByPlayer(int tileIndex) {
     switch (gameData.board[tileIndex]) {
-    case TILE_PLAYER_TWO:
+    case BoardTile_PlayerTwo:
         return 'X';
-    case TILE_PLAYER_EMPTY:
+    case BoardTile_PlayerEmpty:
         return gameData.toggleTileHint ? GetTileHintByTile(tileIndex) : '_';
-    case TILE_PLAYER_ONE:
+    case BoardTile_PlayerOne:
         return 'O';
     default:
         Assert(false, "Un-handled character in board layout");
@@ -418,7 +419,7 @@ static unsigned char sentenceHuman[] = "The previous player checked $.";
 static unsigned char sentenceAI[]    = "The computer checked $.";
 
 const char* GetPlayerCheckedMessage(PlayerType type, int checkTile) { // NOLINT
-    if (type == PLAYER_HUMAN) {
+    if (type == Player_Human) {
         sentenceHuman[28] = checkTile < 10 ? (char)GetTileHintByTile(checkTile) : '?';
         return (const char*)sentenceHuman;
     }
@@ -469,20 +470,20 @@ int MinimaxRecursive(BoardTile player, BoardTile opponent, int depth, bool maxim
     if (maximizingPlayer) {
         bestValue = INT_MIN;
         for (int i = 0; i < BOARD_SIZE; ++i) {
-            if (gameData.board[i] == TILE_PLAYER_EMPTY) {
+            if (gameData.board[i] == BoardTile_PlayerEmpty) {
                 gameData.board[i] = player;
                 int value         = MinimaxRecursive(player, opponent, depth - 1, false);
-                gameData.board[i] = TILE_PLAYER_EMPTY;
+                gameData.board[i] = BoardTile_PlayerEmpty;
                 bestValue         = max(bestValue, value);
             }
         }
     } else {
         bestValue = INT_MAX;
         for (int i = 0; i < BOARD_SIZE; ++i) {
-            if (gameData.board[i] == TILE_PLAYER_EMPTY) {
+            if (gameData.board[i] == BoardTile_PlayerEmpty) {
                 gameData.board[i] = opponent;
                 int value         = MinimaxRecursive(opponent, player, depth - 1, true);
-                gameData.board[i] = TILE_PLAYER_EMPTY;
+                gameData.board[i] = BoardTile_PlayerEmpty;
                 bestValue         = min(bestValue, value);
             }
         }
@@ -491,22 +492,22 @@ int MinimaxRecursive(BoardTile player, BoardTile opponent, int depth, bool maxim
     return bestValue;
 }
 
-static inline int GetPlayerIndex(BoardTile player) { return player == TILE_PLAYER_ONE ? 0 : 1; }
+static inline int GetPlayerIndex(BoardTile player) { return player == BoardTile_PlayerOne ? 0 : 1; }
 
 void Game_Initialize(PlayerType player1, PlayerType player2) {
     gameData.players[0] = player1;
     gameData.players[1] = player2;
 
     for (int i = 0; i < BOARD_SIZE; ++i) {
-        gameData.board[i] = TILE_PLAYER_EMPTY;
+        gameData.board[i] = BoardTile_PlayerEmpty;
     }
 
-    gameData.currentPlayer      = TILE_PLAYER_ONE;
-    gameData.currentOpponent    = TILE_PLAYER_TWO;
+    gameData.currentPlayer      = BoardTile_PlayerOne;
+    gameData.currentOpponent    = BoardTile_PlayerTwo;
     gameData.currentPlayerIndex = 0;
     gameData.turnCount          = 2;
     gameData.emptyTileCount     = BOARD_SIZE;
-    gameData.isDraw             = false;
+    gameData.redraws            = false;
     gameData.isOver             = false;
     gameData.enqueuesAiMessage  = false;
     ClearMessageQueue();
@@ -592,7 +593,7 @@ void Game_ProcessInput() {
         break;
     case KEY_H:
         gameData.toggleTileHint = !gameData.toggleTileHint;
-        gameData.isDraw         = false;
+        gameData.redraws        = false;
         break;
     default:
         inputKey = KEY_NONE;
@@ -606,16 +607,16 @@ int GetAIMove(int difficulty, BoardTile* board, BoardTile player, BoardTile oppo
     if (difficulty == 1) {
         do {
             aiMove = rand() % BOARD_SIZE; // NOLINT
-        } while (board[aiMove] != TILE_PLAYER_EMPTY);
+        } while (board[aiMove] != BoardTile_PlayerEmpty);
         return aiMove;
     }
 
     int bestValue = INT_MIN;
     for (int i = 0; i < BOARD_SIZE; i++) {
-        if (board[i] == TILE_PLAYER_EMPTY) {
+        if (board[i] == BoardTile_PlayerEmpty) {
             board[i]         = player;
             int currentValue = MinimaxRecursive(player, opponent, difficulty, true);
-            board[i]         = TILE_PLAYER_EMPTY;
+            board[i]         = BoardTile_PlayerEmpty;
             if (currentValue > bestValue) {
                 bestValue = currentValue;
                 aiMove    = i;
@@ -628,19 +629,19 @@ int GetAIMove(int difficulty, BoardTile* board, BoardTile player, BoardTile oppo
 // TODO(DevDasae) : Add New Game Mode
 void Game_Update() {
     gameData.currentPlayerIndex = GetPlayerIndex(gameData.currentPlayer);
-    bool const isHumanTurn      = gameData.players[gameData.currentPlayerIndex] == PLAYER_HUMAN;
+    bool const isHumanTurn      = gameData.players[gameData.currentPlayerIndex] == Player_Human;
     bool       isGameOver       = gameData.isOver;
-    bool       isDrawn          = gameData.isDraw;
+    bool       isDrawn          = gameData.redraws;
 
     if ((isHumanTurn && inputKey == -1) || !isDrawn || isGameOver) {
         return;
     }
 
-    gameData.isDraw = false;
+    gameData.redraws = false;
 
     if (isHumanTurn) {
-        if (gameData.board[inputKey - 1] != TILE_PLAYER_EMPTY) {
-            EnqueueMessage(MESSAGE_TILE_IS_NOT_EMPTY);
+        if (gameData.board[inputKey - 1] != BoardTile_PlayerEmpty) {
+            EnqueueMessage(MESSAGE_BoardTile_IS_NOT_EMPTY);
             return;
         }
 
@@ -664,14 +665,14 @@ void Game_Update() {
 
     int turnResult = Evaluate(gameData.currentPlayer, gameData.currentOpponent);
     if (turnResult == 1 || turnResult == -1) {
-        gameData.isDraw = false;
-        gameData.isOver = true;
+        gameData.redraws = false;
+        gameData.isOver  = true;
         EnqueueMessage("Congratulations! You won!\n");
         return;
     }
     if (turnResult == 0) {
-        gameData.isDraw = false;
-        gameData.isOver = true;
+        gameData.redraws = false;
+        gameData.isOver  = true;
         EnqueueMessage("It's a draw.");
         return;
     }
@@ -685,7 +686,7 @@ void Game_Update() {
 
 
 void Game_Draw() {
-    if (gameData.isDraw) { return; }
+    if (gameData.redraws) { return; }
 
     DoSystemCls();
     ShowTurnsPlayer(0, 0);
@@ -693,29 +694,29 @@ void Game_Draw() {
     DrawGameBoard(0, 3);
     DrawMessageBox(0, 9);
 
-    gameData.isDraw = true;
+    gameData.redraws = true;
 }
 
 void Game_Finalize() {
-    gameData.players[0] = PLAYER_NONE;
-    gameData.players[1] = PLAYER_NONE;
+    gameData.players[0] = Player_None;
+    gameData.players[1] = Player_None;
 
     for (int i = 0; i < BOARD_SIZE; ++i) {
-        gameData.board[i] = TILE_PLAYER_EMPTY;
+        gameData.board[i] = BoardTile_PlayerEmpty;
     }
 
-    gameData.currentPlayer      = TILE_PLAYER_ONE;
-    gameData.currentOpponent    = TILE_PLAYER_TWO;
+    gameData.currentPlayer      = BoardTile_PlayerOne;
+    gameData.currentOpponent    = BoardTile_PlayerTwo;
     gameData.currentPlayerIndex = 0;
     gameData.turnCount          = 0;
     gameData.emptyTileCount     = BOARD_SIZE;
-    gameData.isDraw             = false;
+    gameData.redraws            = false;
     gameData.isOver             = false;
     gameData.enqueuesAiMessage  = false;
     ClearMessageQueue();
 }
 
-void Exit_ProcessInput() {
+void Quit_ProcessInput() {
     inputKey = GetInputKey();
     switch (inputKey) {
     case 'n':
@@ -727,11 +728,11 @@ void Exit_ProcessInput() {
     }
 }
 
-void Exit_Update() {
+void Quit_Update() {
     switch (inputKey) {
     case 1:
-        exitData.isDraw = false;
-        currentScene    = &sceneMenu;
+        quitData.redraws = false;
+        currentScene     = &sceneMenu;
     case -1:
         break;
     default:
@@ -739,10 +740,10 @@ void Exit_Update() {
     }
 }
 
-void Exit_Draw() {
-    if (exitData.isDraw) { return; }
-    puts("게임을 종료하시겠습니까? Y/n");
-    exitData.isDraw = true;
+void Quit_Draw() {
+    if (quitData.redraws) { return; }
+    puts("Do you want to quit the game? (Y/n)");
+    quitData.redraws = true;
 }
 
 int main(int argc, char const* argv[]) {
